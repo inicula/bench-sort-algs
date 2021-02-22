@@ -96,13 +96,11 @@ inline std::vector<unsigned int> first_n(const unsigned int n)
     return vec;
 }
 
-
 template<typename T>
-double get_timepoint_count(const T& timepoint)
+auto get_timepoint_count(const T& timepoint)
 {
-    std::chrono::duration<double, std::micro> t =
-        std::chrono::high_resolution_clock::now() - timepoint;
-    return t.count();
+    const auto present = std::chrono::high_resolution_clock::now();
+    return std::chrono::duration_cast<std::chrono::microseconds>(present - timepoint).count();
 }
 
 template<typename T, typename U, typename Gen>
@@ -129,4 +127,22 @@ std::vector<T> get_vector(const std::size_t n, const std::string_view arg, const
         return almost_sorted<T>(n, minv, maxv, g);
     }
     return {};
+}
+
+consteval unsigned exp(unsigned x, unsigned y)
+{
+    if(y == 0)
+    {
+        return 1;
+    }
+    if(x == 2)
+    {
+        return 1 << y;
+    }
+    unsigned res = x;
+    for(unsigned i = 1; i < y; ++i)
+    {
+        res *= x;
+    }
+    return res;
 }

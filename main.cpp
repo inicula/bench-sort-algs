@@ -5,10 +5,15 @@ template<typename It>
 void count_sort(It begin, const It end)
 {
     const unsigned int max = *std::max_element(begin, end);
+    if(max > (exp(10, 9) / 2))
+    {
+        std::cout << "Maximum value too big for CountSort\n";
+        return;
+    }
     std::vector<unsigned int> freq;
     freq.resize(max + 1);
 
-    auto it = begin();
+    auto it = begin;
     while(it != end)
     {
         ++freq[*it];
@@ -26,6 +31,33 @@ void count_sort(It begin, const It end)
             ++idx;
         }
     }
+}
+
+template<typename It>
+void bubble_sort(It begin, const It end)
+{
+    const unsigned size = std::distance(begin, end);
+
+    for(unsigned i = 0; i < size - 1; ++i)
+    {
+        for(unsigned j = 0; j < size - i - 1; ++j)
+        {
+            if(begin[j] > begin[j + 1])
+            {
+                std::swap(begin[j], begin[j+1]);
+            }
+        }
+    }
+}
+
+template<typename It>
+void merge_sort(It begin, It end)
+{
+}
+
+template<typename It>
+void quick_sort(It begin, It end)
+{
 }
 
 template<typename It>
@@ -48,43 +80,23 @@ void count_sort_str(It begin, const It end)
     }
 }
 
+template<typename T>
+void (*unsigned_sort_methods[5])(typename T::iterator, typename T::iterator) = {count_sort,
+                                                                                std::sort};
+
 int main()
 {
-    std::string line;
-    while(std::getline(std::cin, line))
+    int k = 1;
+    for(unsigned i = 2; i <= exp(2, 29); i *= 2)
     {
-        const auto args = split(line);
-        for(unsigned n = 10; n <= 100000000; n *= 10)
-        {
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            if(args[0] == "int")
-            {
-                const int minv = std::stoi(args[2]);
-                const int maxv = std::stoi(args[3]);
-                const std::vector<int> vec = get_vector<int>(n, args[1], minv, maxv, gen);
-            }
-            else if(args[0] == "unsigned")
-            {
-                const unsigned minv = std::stoul(args[2]);
-                const unsigned maxv = std::stoul(args[3]);
-                const std::vector<unsigned> vec =
-                    get_vector<unsigned>(n, args[1], minv, maxv, gen);
-            }
-            else if(args[0] == "double")
-            {
-                const double minv = std::stod(args[2]);
-                const double maxv = std::stod(args[3]);
-                const std::vector<double> vec =
-                    get_vector<double>(n, args[1], minv, maxv, gen);
-            }
-            else if(args[0] == "string")
-            {
-                const int minv = std::stoi(args[2]);
-                const int maxv = std::stoi(args[3]);
-                const std::vector<std::string> vec =
-                    get_vector<std::string>(n, args[1], minv, maxv, gen);
-            }
-        }
+        std::cerr << k++ << '\n';
+        std::random_device rd;
+        std::mt19937 gen(rd());
+
+        std::vector<unsigned> vec = random<unsigned>(i, 0u, i, gen);
+
+        auto p = std::chrono::high_resolution_clock::now();
+        bubble_sort(vec.begin(), vec.end());
+        std::cout << get_timepoint_count(p) << '\n';
     }
 }
