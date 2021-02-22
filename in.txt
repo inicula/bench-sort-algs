@@ -1,0 +1,1 @@
+int almostsorted 0 10
