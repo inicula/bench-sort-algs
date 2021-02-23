@@ -187,17 +187,21 @@ void legends()
 }
 
 template<typename T, typename GeneratorFunction>
-void benchmark_method(const std::string& inputtype, int plotpos, GeneratorFunction pred,
-                      auto&&... generator_args)
+void benchmark_sort_methods(const std::string& inputtype, int plotpos, GeneratorFunction pred,
+                            auto&&... generator_args)
 {
-    std::vector<std::vector<u64>> timpi;
-    int k = 0;
-    for(auto metoda : SortMethods<std::vector<unsigned>>::list)
+    using VectorType = std::vector<T>;
+    const auto& method_list = SortMethods<VectorType>::list;
+    const auto& method_names = SortMethods<VectorType>::namelist;
+
+    std::vector<std::vector<u64>> time_list;
+    unsigned k = 0;
+    for(auto metoda : method_list)
     {
-        std::cerr << "Sorting with method: " << k++ << "..." << '\n';
-        timpi.push_back({});
+        std::cerr << "Sorteaza prin metoda: " << method_names[k++] << "..." << '\n';
+        time_list.push_back({});
         int ptwo = 1;
-        for(u64 i = 2; i <= exp(2, 29); i *= 2)
+        for(u64 i = 2; i <= exp(2, 10); i *= 2)
         {
             std::cerr << "Marimea vectorului: 2^" << ptwo++ << '\n';
             std::random_device rd;
@@ -211,7 +215,7 @@ void benchmark_method(const std::string& inputtype, int plotpos, GeneratorFuncti
 
             if(std::is_sorted(vec.cbegin(), vec.cend()))
             {
-                timpi.back().push_back(elapsed);
+                time_list.back().push_back(elapsed);
             }
             else
             {
@@ -228,20 +232,20 @@ void benchmark_method(const std::string& inputtype, int plotpos, GeneratorFuncti
     subplot_pos(plotpos);
     std::cout << predefined;
     subplot_title(inputtype);
-    plot_command(timpi);
-    legends<std::vector<T>>();
+    plot_command(time_list);
+    legends<VectorType>();
 }
 
 int main()
 {
-    benchmark_method<unsigned>("random", 1, random<unsigned>);
+    benchmark_sort_methods<unsigned>("random", 1, random<unsigned>);
 
-    benchmark_method<unsigned>("almost sorted", 2, almost_sorted<unsigned>,
-                               std::less<unsigned>{});
+    benchmark_sort_methods<unsigned>("almost sorted", 2, almost_sorted<unsigned>,
+                                     std::less<unsigned>{});
 
-    benchmark_method<unsigned>("almost sorted (decreasing)", 3,
-                               almost_sorted<unsigned, std::greater<unsigned>>,
-                               std::greater<unsigned>{});
+    benchmark_sort_methods<unsigned>("almost sorted (decreasing)", 3,
+                                     almost_sorted<unsigned, std::greater<unsigned>>,
+                                     std::greater<unsigned>{});
 
-    benchmark_method<unsigned>("sorted", 4, sorted<unsigned>, std::less<unsigned>{});
+    benchmark_sort_methods<unsigned>("sorted", 4, sorted<unsigned>, std::less<unsigned>{});
 }

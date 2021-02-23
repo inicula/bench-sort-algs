@@ -10,6 +10,14 @@
 
 using u64 = std::uint64_t;
 
+inline std::vector<unsigned int> first_n(const unsigned int n)
+{
+    std::vector<unsigned int> vec;
+    vec.resize(n);
+    std::iota(vec.begin(), vec.end(), 0u);
+    return vec;
+}
+
 std::vector<std::string> split(const std::string_view s, const char delim = ' ')
 {
     auto start = s.begin();
@@ -93,45 +101,11 @@ std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g,
     return vec;
 }
 
-inline std::vector<unsigned int> first_n(const unsigned int n)
-{
-    std::vector<unsigned int> vec;
-    vec.resize(n);
-    std::iota(vec.begin(), vec.end(), 0u);
-    return vec;
-}
-
 template<typename T>
-unsigned long long get_timepoint_count(const T& timepoint)
+u64 get_timepoint_count(const T& timepoint)
 {
     const auto present = std::chrono::high_resolution_clock::now();
     return std::chrono::duration_cast<std::chrono::nanoseconds>(present - timepoint).count();
-}
-
-template<typename T, typename U, typename Gen>
-std::vector<T> get_vector(const std::size_t n, const std::string_view arg, const U minv,
-                          const U maxv, Gen& g)
-{
-    if constexpr(std::is_same_v<T, unsigned>)
-    {
-        if(arg == "firstn")
-        {
-            return first_n(n);
-        }
-    }
-    if(arg == "random")
-    {
-        return random<T>(n, minv, maxv, g);
-    }
-    else if(arg == "sorted")
-    {
-        return sorted<T>(n, minv, maxv, g);
-    }
-    else if(arg == "almostsorted")
-    {
-        return almost_sorted<T>(n, minv, maxv, g);
-    }
-    return {};
 }
 
 consteval u64 exp(u64 x, u64 y)
@@ -162,12 +136,12 @@ constexpr const char* predefined = "plt.xscale('log', base=2)\n"
 
 const std::array<std::string, 6> markers = {"'bs'", "'g^'", "'r*'", "'mX'", "'co'", "'kH'"};
 
-std::string size_range(unsigned i)
+inline std::string size_range(unsigned i)
 {
     return "[2**x for x in range(1, " + std::to_string(i + 1) + ")]";
 }
 
-std::string timepoints_array(const std::vector<u64>& vec)
+inline std::string timepoints_array(const std::vector<u64>& vec)
 {
     std::string str = "[";
     for(auto el : vec)
