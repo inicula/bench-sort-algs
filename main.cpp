@@ -1,16 +1,19 @@
 #include "helper.h"
 #include <iostream>
+#include <iterator>
 
 template<typename It>
 void count_sort(It begin, const It end)
 {
-    const unsigned int max = *std::max_element(begin, end);
-    if(max > (exp(10, 9) / 2))
+    using T = typename std::iterator_traits<It>::value_type;
+
+    const auto max = *std::max_element(begin, end);
+    if(max > exp(2, 29))
     {
-        std::cout << "Maximum value too big for CountSort\n";
+        std::cerr << "Maximum value too big for count_sort\n";
         return;
     }
-    std::vector<unsigned int> freq;
+    std::vector<T> freq;
     freq.resize(max + 1);
 
     auto it = begin;
@@ -20,8 +23,8 @@ void count_sort(It begin, const It end)
         ++it;
     }
 
-    unsigned int idx = 0;
-    for(unsigned int i = 0; i <= max; ++i)
+    u64 idx = 0;
+    for(T i = 0; i <= max; ++i)
     {
         unsigned int count = freq[i];
         while(count != 0)
@@ -57,8 +60,94 @@ void bubble_sort(It begin, const It end)
 }
 
 template<typename It>
+void merge(const It begin, const It mid, const It end)
+{
+    using T = typename std::iterator_traits<It>::value_type;
+
+    std::vector<T> temp;
+    temp.reserve(end - begin);
+
+    auto left = begin;
+    auto right = mid;
+
+    while(left != mid && right != end)
+    {
+        if(*left < *right)
+        {
+            if constexpr(std::is_arithmetic_v<T>)
+            {
+                temp.push_back(*left);
+            }
+            else
+            {
+                temp.push_back(std::move(*left));
+            }
+            ++left;
+        }
+        else
+        {
+            if constexpr(std::is_arithmetic_v<T>)
+            {
+                temp.push_back(*right);
+            }
+            else
+            {
+                temp.push_back(std::move(*right));
+            }
+            ++right;
+        }
+    }
+
+    if(left != mid)
+    {
+        if constexpr(std::is_arithmetic_v<T>)
+        {
+            temp.insert(temp.end(), left, mid);
+        }
+        else
+        {
+            temp.insert(temp.end(), std::make_move_iterator(left),
+                        std::make_move_iterator(mid));
+        }
+    }
+    if(right != end)
+    {
+        if constexpr(std::is_arithmetic_v<T>)
+        {
+            temp.insert(temp.end(), right, end);
+        }
+        else
+        {
+            temp.insert(temp.end(), std::make_move_iterator(right),
+                        std::make_move_iterator(end));
+        }
+    }
+
+    if constexpr(std::is_arithmetic_v<T>)
+    {
+        std::copy(temp.cbegin(), temp.cend(), begin);
+    }
+    else
+    {
+        std::move(temp.begin(), temp.end(), begin);
+    }
+}
+
+template<typename It>
 void merge_sort(It begin, It end)
 {
+    const auto size = end - begin;
+
+    if(size <= 1)
+    {
+        return;
+    }
+
+    auto mid = begin + size / 2;
+    merge_sort(begin, mid);
+    merge_sort(mid, end);
+
+    merge(begin, mid, end);
 }
 
 template<typename It>
@@ -66,9 +155,36 @@ void quick_sort(It begin, It end)
 {
 }
 
-template<typename T>
-void (*unsigned_sort_methods[3])(typename T::iterator,
-                                 typename T::iterator) = {count_sort, bubble_sort, std::sort};
+template<typename Container, typename = void>
+struct SortMethods
+{
+    static constexpr void (*list[])(typename Container::iterator,
+                                    typename Container::iterator) = {bubble_sort, merge_sort,
+                                                                     std::sort};
+    static constexpr std::string_view namelist[] = {"bubble_sort", "merge_sort", "std::sort"};
+};
+
+template<typename Container>
+struct SortMethods<Container,
+                   std::enable_if_t<std::is_unsigned_v<typename Container::value_type>>>
+{
+    static constexpr void (*list[])(typename Container::iterator,
+                                    typename Container::iterator) = {count_sort, bubble_sort,
+                                                                     merge_sort, std::sort};
+    static constexpr std::string_view namelist[] = {"count_sort", "bubble_sort", "merge_sort",
+                                                    "std::sort"};
+};
+
+template<typename Container>
+void legends()
+{
+    std::cout << "plt.legend([";
+    for(auto l : SortMethods<Container>::namelist)
+    {
+        std::cout << "'" << l << "', ";
+    }
+    std::cout << "])\n";
+}
 
 template<typename T, typename GeneratorFunction>
 void benchmark_method(const std::string& inputtype, int plotpos, GeneratorFunction pred,
@@ -76,12 +192,12 @@ void benchmark_method(const std::string& inputtype, int plotpos, GeneratorFuncti
 {
     std::vector<std::vector<u64>> timpi;
     int k = 0;
-    for(auto metoda : unsigned_sort_methods<std::vector<unsigned>>)
+    for(auto metoda : SortMethods<std::vector<unsigned>>::list)
     {
         std::cerr << "Sorting with method: " << k++ << "..." << '\n';
         timpi.push_back({});
         int ptwo = 1;
-        for(u64 i = 2; i <= exp(2, 27); i *= 2)
+        for(u64 i = 2; i <= exp(2, 29); i *= 2)
         {
             std::cerr << "Marimea vectorului: 2^" << ptwo++ << '\n';
             std::random_device rd;
@@ -93,48 +209,39 @@ void benchmark_method(const std::string& inputtype, int plotpos, GeneratorFuncti
             metoda(vec.begin(), vec.end());
             u64 elapsed = get_timepoint_count(p);
 
-            if(std::is_sorted(vec.begin(), vec.end()))
+            if(std::is_sorted(vec.cbegin(), vec.cend()))
             {
                 timpi.back().push_back(elapsed);
             }
             else
             {
-                std::cerr << "eroare\n";
-                return;
+                std::cerr << "Nu s-a putut sorta din motivul de mai sus\n";
             }
 
-            if(elapsed > (2 * exp(10, 10)))
+            if(elapsed > (1 * exp(10, 10)))
             {
                 break;
             }
         }
     }
 
-    std::cout << subplot_pos(plotpos) << '\n';
+    subplot_pos(plotpos);
     std::cout << predefined;
-    std::cout << subplot_title(inputtype) << '\n';
-    std::cout << plot_command(timpi) << '\n';
-    std::cout << legends({"count_sort", "bubble_sort", "std::sort"}) << '\n';
+    subplot_title(inputtype);
+    plot_command(timpi);
+    legends<std::vector<T>>();
 }
 
 int main()
 {
-    benchmark_method<unsigned>("random",
-                               1,
-                               random<unsigned, unsigned, std::mt19937>);
+    benchmark_method<unsigned>("random", 1, random<unsigned>);
 
-    benchmark_method<unsigned>("almost sorted",
-                               2,
-                               almost_sorted<unsigned, unsigned, std::mt19937, std::less<unsigned>>,
+    benchmark_method<unsigned>("almost sorted", 2, almost_sorted<unsigned>,
                                std::less<unsigned>{});
 
-    benchmark_method<unsigned>("almost sorted (decreasing)",
-                               3,
-                               almost_sorted<unsigned, unsigned, std::mt19937, std::greater<unsigned>>,
+    benchmark_method<unsigned>("almost sorted (decreasing)", 3,
+                               almost_sorted<unsigned, std::greater<unsigned>>,
                                std::greater<unsigned>{});
 
-    benchmark_method<unsigned>("sorted",
-                               4,
-                               sorted<unsigned, unsigned, std::mt19937>,
-                               std::less<unsigned>{});
+    benchmark_method<unsigned>("sorted", 4, sorted<unsigned>, std::less<unsigned>{});
 }

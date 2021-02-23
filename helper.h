@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstring>
 #include <queue>
+#include <iostream>
 
 using u64 = std::uint64_t;
 
@@ -44,7 +45,7 @@ __always_inline std::string make_string(std::size_t n, Gen& gen)
     return str;
 }
 
-template<typename T, typename U, typename Gen>
+template<typename T, typename U = T, typename Gen = std::mt19937>
 std::vector<T> random(std::size_t n, const U min, const U max, Gen& gen)
 {
     using distrib_type = std::conditional_t<
@@ -73,9 +74,9 @@ std::vector<T> random(std::size_t n, const U min, const U max, Gen& gen)
     return vec;
 }
 
-template<typename T, typename U, typename Gen, typename Comp>
+template<typename T, typename Comp = std::less<T>, typename U = T, typename Gen = std::mt19937>
 std::vector<T> almost_sorted(const std::size_t n, const U min, const U max, Gen& g,
-                             Comp c = std::less<T>{})
+                             Comp c = Comp{})
 {
     std::vector<T> vec = random<T>(n, min, max, g);
     auto endpoint = vec.end() - (vec.size() / 20);
@@ -83,8 +84,9 @@ std::vector<T> almost_sorted(const std::size_t n, const U min, const U max, Gen&
     return vec;
 }
 
-template<typename T, typename U, typename Gen, typename Comp = std::less<T>>
-std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g, const Comp& c = Comp())
+template<typename T, typename Comp = std::less<T>, typename U = T, typename Gen = std::mt19937>
+std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g,
+                      const Comp& c = Comp())
 {
     std::vector<T> vec = random<T>(n, min, max, g);
     std::sort(vec.begin(), vec.end(), c);
@@ -177,37 +179,25 @@ std::string timepoints_array(const std::vector<u64>& vec)
     return str;
 }
 
-std::string subplot_pos(unsigned i)
+inline void subplot_pos(unsigned i)
 {
-    return "plt.subplot(22" + std::to_string(i) + ')';
+    std::cout << "plt.subplot(22" << i << ")\n";
 }
 
-std::string subplot_title(const std::string& str)
+inline void subplot_title(const std::string& str)
 {
-    return "plt.title('" + str + "')";
+    std::cout << "plt.title('" << str << "')\n";
 }
 
-std::string plot_command(const std::vector<std::vector<u64>>& timpi)
+inline void plot_command(const std::vector<std::vector<u64>>& timpi)
 {
     auto current_marker = markers.cbegin();
-    std::string command = "plt.plot(";
+    std::cout << "plt.plot(";
     for(auto& tmetoda : timpi)
     {
-        command = command + size_range(tmetoda.size()) + ',' + timepoints_array(tmetoda) +
-                  ',' + *current_marker + ',';
+        std::cout << size_range(tmetoda.size()) << ',' << timepoints_array(tmetoda) << ','
+                  << *current_marker << ',';
         ++current_marker;
     }
-    command += ')';
-    return command;
-}
-
-std::string legends(const std::vector<std::string>& leg)
-{
-    std::string command = "plt.legend([";
-    for(auto l : leg)
-    {
-        command = command + "'" + l + "', ";
-    }
-    command += "])";
-    return command;
+    std::cout << ")\n";
 }
