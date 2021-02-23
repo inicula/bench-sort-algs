@@ -5,6 +5,9 @@
 #include <chrono>
 #include <algorithm>
 #include <cstring>
+#include <queue>
+
+using u64 = std::uint64_t;
 
 std::vector<std::string> split(const std::string_view s, const char delim = ' ')
 {
@@ -70,9 +73,9 @@ std::vector<T> random(std::size_t n, const U min, const U max, Gen& gen)
     return vec;
 }
 
-template<typename T, typename U, typename Gen, typename Comp = std::less<T>>
+template<typename T, typename U, typename Gen, typename Comp>
 std::vector<T> almost_sorted(const std::size_t n, const U min, const U max, Gen& g,
-                             Comp c = Comp{})
+                             Comp c = std::less<T>{})
 {
     std::vector<T> vec = random<T>(n, min, max, g);
     auto endpoint = vec.end() - (vec.size() / 20);
@@ -81,7 +84,7 @@ std::vector<T> almost_sorted(const std::size_t n, const U min, const U max, Gen&
 }
 
 template<typename T, typename U, typename Gen, typename Comp = std::less<T>>
-std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g, Comp c = Comp{})
+std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g, const Comp& c = Comp())
 {
     std::vector<T> vec = random<T>(n, min, max, g);
     std::sort(vec.begin(), vec.end(), c);
@@ -97,10 +100,10 @@ inline std::vector<unsigned int> first_n(const unsigned int n)
 }
 
 template<typename T>
-auto get_timepoint_count(const T& timepoint)
+unsigned long long get_timepoint_count(const T& timepoint)
 {
     const auto present = std::chrono::high_resolution_clock::now();
-    return std::chrono::duration_cast<std::chrono::microseconds>(present - timepoint).count();
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(present - timepoint).count();
 }
 
 template<typename T, typename U, typename Gen>
@@ -129,7 +132,7 @@ std::vector<T> get_vector(const std::size_t n, const std::string_view arg, const
     return {};
 }
 
-consteval unsigned exp(unsigned x, unsigned y)
+consteval u64 exp(u64 x, u64 y)
 {
     if(y == 0)
     {
@@ -139,10 +142,72 @@ consteval unsigned exp(unsigned x, unsigned y)
     {
         return 1 << y;
     }
-    unsigned res = x;
-    for(unsigned i = 1; i < y; ++i)
+    u64 res = x;
+    for(u64 i = 1; i < y; ++i)
     {
         res *= x;
     }
     return res;
+}
+
+constexpr const char* predefined = "plt.xscale('log', base=2)\n"
+                                   "plt.yscale('log', base=10)\n"
+                                   "plt.gca().set_xticks(xloc)\n"
+                                   "plt.gca().set_yticks(yloc)\n"
+                                   "plt.grid(True)\n"
+                                   "plt.xlabel('no. elements')\n"
+                                   "plt.ylabel('nanoseconds')\n";
+
+const std::array<std::string, 6> markers = {"'bs'", "'g^'", "'r*'", "'mX'", "'co'", "'kH'"};
+
+std::string size_range(unsigned i)
+{
+    return "[2**x for x in range(1, " + std::to_string(i + 1) + ")]";
+}
+
+std::string timepoints_array(const std::vector<u64>& vec)
+{
+    std::string str = "[";
+    for(auto el : vec)
+    {
+        str += std::to_string(el);
+        str += ',';
+    }
+    str += ']';
+    return str;
+}
+
+std::string subplot_pos(unsigned i)
+{
+    return "plt.subplot(22" + std::to_string(i) + ')';
+}
+
+std::string subplot_title(const std::string& str)
+{
+    return "plt.title('" + str + "')";
+}
+
+std::string plot_command(const std::vector<std::vector<u64>>& timpi)
+{
+    auto current_marker = markers.cbegin();
+    std::string command = "plt.plot(";
+    for(auto& tmetoda : timpi)
+    {
+        command = command + size_range(tmetoda.size()) + ',' + timepoints_array(tmetoda) +
+                  ',' + *current_marker + ',';
+        ++current_marker;
+    }
+    command += ')';
+    return command;
+}
+
+std::string legends(const std::vector<std::string>& leg)
+{
+    std::string command = "plt.legend([";
+    for(auto l : leg)
+    {
+        command = command + "'" + l + "', ";
+    }
+    command += "])";
+    return command;
 }

@@ -40,12 +40,18 @@ void bubble_sort(It begin, const It end)
 
     for(unsigned i = 0; i < size - 1; ++i)
     {
+        bool swapped = false;
         for(unsigned j = 0; j < size - i - 1; ++j)
         {
             if(begin[j] > begin[j + 1])
             {
-                std::swap(begin[j], begin[j+1]);
+                std::swap(begin[j], begin[j + 1]);
+                swapped = true;
             }
+        }
+        if(!swapped)
+        {
+            break;
         }
     }
 }
@@ -81,22 +87,74 @@ void count_sort_str(It begin, const It end)
 }
 
 template<typename T>
-void (*unsigned_sort_methods[5])(typename T::iterator, typename T::iterator) = {count_sort,
-                                                                                std::sort};
+void (*unsigned_sort_methods[3])(typename T::iterator,
+                                 typename T::iterator) = {count_sort, bubble_sort, std::sort};
+
+template<typename T, typename GeneratorFunction>
+void benchmark_method(const std::string& inputtype, int plotpos, GeneratorFunction pred,
+                      auto&&... generator_args)
+{
+    std::vector<std::vector<u64>> timpi;
+    int k = 0;
+    for(auto metoda : unsigned_sort_methods<std::vector<unsigned>>)
+    {
+        std::cerr << "Sorting with method: " << k++ << "..." << '\n';
+        timpi.push_back({});
+        int ptwo = 1;
+        for(u64 i = 2; i <= exp(2, 27); i *= 2)
+        {
+            std::cerr << "Marimea vectorului: 2^" << ptwo++ << '\n';
+            std::random_device rd;
+            std::mt19937 gen(rd());
+
+            std::vector<T> vec = pred(i, 0u, i, gen, generator_args...);
+
+            auto p = std::chrono::high_resolution_clock::now();
+            metoda(vec.begin(), vec.end());
+            u64 elapsed = get_timepoint_count(p);
+
+            if(std::is_sorted(vec.begin(), vec.end()))
+            {
+                timpi.back().push_back(elapsed);
+            }
+            else
+            {
+                std::cerr << "eroare\n";
+                return;
+            }
+
+            if(elapsed > (2 * exp(10, 10)))
+            {
+                break;
+            }
+        }
+    }
+
+    std::cout << subplot_pos(plotpos) << '\n';
+    std::cout << predefined;
+    std::cout << subplot_title(inputtype) << '\n';
+    std::cout << plot_command(timpi) << '\n';
+    std::cout << legends({"count_sort", "bubble_sort", "std::sort"}) << '\n';
+}
 
 int main()
 {
-    int k = 1;
-    for(unsigned i = 2; i <= exp(2, 29); i *= 2)
-    {
-        std::cerr << k++ << '\n';
-        std::random_device rd;
-        std::mt19937 gen(rd());
+    benchmark_method<unsigned>("random",
+                               1,
+                               random<unsigned, unsigned, std::mt19937>);
 
-        std::vector<unsigned> vec = random<unsigned>(i, 0u, i, gen);
+    benchmark_method<unsigned>("almost sorted",
+                               2,
+                               almost_sorted<unsigned, unsigned, std::mt19937, std::less<unsigned>>,
+                               std::less<unsigned>{});
 
-        auto p = std::chrono::high_resolution_clock::now();
-        bubble_sort(vec.begin(), vec.end());
-        std::cout << get_timepoint_count(p) << '\n';
-    }
+    benchmark_method<unsigned>("almost sorted (decreasing)",
+                               3,
+                               almost_sorted<unsigned, unsigned, std::mt19937, std::greater<unsigned>>,
+                               std::greater<unsigned>{});
+
+    benchmark_method<unsigned>("sorted",
+                               4,
+                               sorted<unsigned, unsigned, std::mt19937>,
+                               std::less<unsigned>{});
 }
