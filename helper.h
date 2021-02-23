@@ -18,24 +18,6 @@ inline std::vector<unsigned int> first_n(const unsigned int n)
     return vec;
 }
 
-std::vector<std::string> split(const std::string_view s, const char delim = ' ')
-{
-    auto start = s.begin();
-    std::vector<std::string> res;
-
-    for(auto it = s.begin(); it != s.end(); ++it)
-    {
-        if(*it == delim)
-        {
-            res.emplace_back(start, it);
-            start = it + 1;
-        }
-    }
-    res.emplace_back(start, s.end());
-
-    return res;
-}
-
 template<typename Gen>
 __always_inline std::string make_string(std::size_t n, Gen& gen)
 {
