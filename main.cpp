@@ -66,26 +66,6 @@ void quick_sort(It begin, It end)
 {
 }
 
-template<typename It>
-void count_sort_str(It begin, const It end)
-{
-    auto it = begin;
-    std::array<unsigned int, 128> freq = {};
-
-    while(it != end)
-    {
-        ++freq[*it];
-        ++it;
-    }
-
-    char* dest = begin.base();
-    for(unsigned int i = 0; i < 128; ++i)
-    {
-        std::memset(dest, static_cast<char>(i), freq[i]);
-        dest += freq[i];
-    }
-}
-
 template<typename T>
 void (*unsigned_sort_methods[3])(typename T::iterator,
                                  typename T::iterator) = {count_sort, bubble_sort, std::sort};
