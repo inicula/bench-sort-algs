@@ -247,7 +247,8 @@ u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
     std::vector<u64> elapsed;
     u64 elapsed_total = 0;
     bool flag = true;
-    while(elapsed_total < exp(10, 0))
+
+    while(elapsed_total < exp(10, 7))
     {
         out_vec = in_vec;
 
