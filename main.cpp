@@ -195,14 +195,26 @@ void quick_sort(It begin, It end)
     quick_sort_helper(begin, end, gen);
 }
 
+template<typename It>
+void quick_sort_last(It begin, It end)
+{
+    if((end - begin) > 1)
+    {
+        auto pivot = partition(begin, end);
+        quick_sort_last(begin, pivot);
+        quick_sort_last(pivot + 1, end);
+    }
+}
+
 template<typename Container, typename = void>
 struct SortMethods
 {
     using It = typename Container::iterator;
-    static constexpr void (*list[])(It, It) = {bubble_sort, merge_sort, quick_sort, std::sort};
+    static constexpr void (*list[])(It, It) = {bubble_sort, merge_sort, quick_sort,
+                                               quick_sort_last, std::sort};
 
-    static constexpr const char* namelist[] = {"bubble_sort", "merge_sort", "quick_sort",
-                                               "std::sort"};
+    static constexpr const char* namelist[] = {
+        "bubble_sort", "merge_sort", "quick_sort (random)", "quick_sort (last)", "std::sort"};
 };
 
 template<typename Container>
@@ -210,11 +222,12 @@ struct SortMethods<Container,
                    std::enable_if_t<std::is_unsigned_v<typename Container::value_type>>>
 {
     using It = typename Container::iterator;
-    static constexpr void (*list[])(It, It) = {count_sort, bubble_sort, merge_sort, quick_sort,
-                                               std::sort};
+    static constexpr void (*list[])(It, It) = {count_sort, bubble_sort,     merge_sort,
+                                               quick_sort, quick_sort_last, std::sort};
 
-    static constexpr const char* namelist[] = {"count_sort", "bubble_sort", "merge_sort",
-                                               "quick_sort", "std::sort"};
+    static constexpr const char* namelist[] = {"count_sort",        "bubble_sort",
+                                               "merge_sort",        "quick_sort (random)",
+                                               "quick_sort (last)", "std::sort"};
 };
 
 template<typename Container>
@@ -243,7 +256,7 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
     time_list.resize(n_methods);
 
     unsigned currentsize = 1;
-    for(u64 i = 2; i <= exp(2, 20); i *= 2)
+    for(u64 i = 2; i <= exp(2, 15); i *= 2)
     {
         std::cerr << "Marimea vectorului: 2^" << currentsize++ << '\n';
 
@@ -275,7 +288,7 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
                 std::cerr << "Nu s-a putut sorta din motivul de mai sus\n";
             }
 
-            if(elapsed > (1 * exp(10, 10)))
+            if(elapsed > (exp(10, 10) / 3))
             {
                 reached_limit[m_idx] = true;
             }

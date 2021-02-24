@@ -116,7 +116,7 @@ constexpr const char* predefined = "plt.xscale('log', base=2)\n"
                                    "plt.xlabel('no. elements')\n"
                                    "plt.ylabel('nanoseconds')\n";
 
-const std::array<std::string, 6> markers = {"'bs'", "'g^'", "'r*'", "'mX'", "'co'", "'kH'"};
+const std::array<std::string, 6> markers = {"'bs'", "'g^'", "'rP'", "'mD'", "'co'", "'kh'"};
 
 inline std::string size_range(unsigned i)
 {
