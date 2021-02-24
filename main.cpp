@@ -13,6 +13,7 @@ void count_sort(It begin, const It end)
         std::cerr << "Maximum value too big for count_sort\n";
         return;
     }
+
     std::vector<T> freq;
     freq.resize(max + 1);
 
@@ -137,7 +138,6 @@ template<typename It>
 void merge_sort(It begin, It end)
 {
     const auto size = end - begin;
-
     if(size <= 1)
     {
         return;
@@ -191,7 +191,6 @@ void quick_sort(It begin, It end)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-
     quick_sort_helper(begin, end, gen);
 }
 
@@ -246,7 +245,7 @@ u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
 {
     std::vector<u64> elapsed;
     u64 elapsed_total = 0;
-    bool flag = true;
+    bool needs_check = true;
 
     while(elapsed_total < exp(10, 7))
     {
@@ -256,13 +255,13 @@ u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
         method(out_vec.begin(), out_vec.end());
         u64 duration = get_timepoint_count(tp);
 
-        if(flag && !std::is_sorted(out_vec.cbegin(), out_vec.cend()))
+        if(needs_check && !std::is_sorted(out_vec.cbegin(), out_vec.cend()))
         {
             return U64MAX;
         }
         else
         {
-            flag = false;
+            needs_check = false;
         }
 
         elapsed.push_back(duration);
@@ -277,10 +276,11 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
                             auto&&... generator_args)
 {
     using VectorType = std::vector<T>;
+
     const auto& method_list = SortMethods<VectorType>::list;
     const auto& method_names = SortMethods<VectorType>::namelist;
     constexpr auto n_methods = std::size(method_list);
-    std::array<bool, n_methods> reached_limit = {};
+    std::array<bool, n_methods> reached_limit;
     std::memset(reached_limit.data(), false, n_methods);
 
     std::vector<std::vector<u64>> time_list;
