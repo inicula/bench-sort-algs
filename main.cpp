@@ -199,9 +199,10 @@ template<typename Container, typename = void>
 struct SortMethods
 {
     using It = typename Container::iterator;
-    static constexpr void (*list[])(It, It) = {bubble_sort, merge_sort, std::sort};
+    static constexpr void (*list[])(It, It) = {bubble_sort, merge_sort, quick_sort, std::sort};
 
-    static constexpr const char* namelist[] = {"bubble_sort", "merge_sort", "std::sort"};
+    static constexpr const char* namelist[] = {"bubble_sort", "merge_sort", "quick_sort",
+                                               "std::sort"};
 };
 
 template<typename Container>
@@ -209,10 +210,11 @@ struct SortMethods<Container,
                    std::enable_if_t<std::is_unsigned_v<typename Container::value_type>>>
 {
     using It = typename Container::iterator;
-    static constexpr void (*list[])(It, It) = {count_sort, bubble_sort, merge_sort, std::sort};
+    static constexpr void (*list[])(It, It) = {count_sort, bubble_sort, merge_sort, quick_sort,
+                                               std::sort};
 
     static constexpr const char* namelist[] = {"count_sort", "bubble_sort", "merge_sort",
-                                               "std::sort"};
+                                               "quick_sort", "std::sort"};
 };
 
 template<typename Container>
@@ -233,29 +235,40 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
     using VectorType = std::vector<T>;
     const auto& method_list = SortMethods<VectorType>::list;
     const auto& method_names = SortMethods<VectorType>::namelist;
+    constexpr auto n_methods = std::size(method_list);
+    std::array<bool, n_methods> reached_limit = {};
+    std::memset(reached_limit.data(), false, n_methods);
 
     std::vector<std::vector<u64>> time_list;
-    unsigned k = 0;
-    for(auto method : method_list)
-    {
-        std::cerr << "Sorteaza prin metoda: " << method_names[k++] << "..." << '\n';
-        time_list.push_back({});
-        int ptwo = 1;
-        for(u64 i = 2; i <= exp(2, 15); i *= 2)
-        {
-            std::cerr << "Marimea vectorului: 2^" << ptwo++ << '\n';
-            std::random_device rd;
-            std::mt19937 gen(rd());
+    time_list.resize(n_methods);
 
-            std::vector<T> vec = pred(i, 0u, i, gen, generator_args...);
+    unsigned currentsize = 1;
+    for(u64 i = 2; i <= exp(2, 20); i *= 2)
+    {
+        std::cerr << "Marimea vectorului: 2^" << currentsize++ << '\n';
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        const std::vector<T> to_sort = pred(i, 0u, i, gen, generator_args...);
+
+        for(unsigned m_idx = 0; m_idx < n_methods; ++m_idx)
+        {
+            if(reached_limit[m_idx] == true)
+            {
+                continue;
+            }
+
+            std::cerr << "Sorteaza prin metoda: " << method_names[m_idx] << "..." << '\n';
+
+            std::vector<T> vec = to_sort;
 
             auto p = std::chrono::high_resolution_clock::now();
-            method(vec.begin(), vec.end());
+            method_list[m_idx](vec.begin(), vec.end());
             u64 elapsed = get_timepoint_count(p);
 
             if(std::is_sorted(vec.cbegin(), vec.cend()))
             {
-                time_list.back().push_back(elapsed);
+                time_list[m_idx].push_back(elapsed);
             }
             else
             {
@@ -264,7 +277,7 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
 
             if(elapsed > (1 * exp(10, 10)))
             {
-                break;
+                reached_limit[m_idx] = true;
             }
         }
     }
