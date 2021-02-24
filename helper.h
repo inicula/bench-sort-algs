@@ -79,9 +79,19 @@ template<typename T, typename Comp = std::less<T>, typename U = T, typename Gen 
 std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g,
                       const Comp& c = Comp())
 {
-    std::vector<T> vec = random<T>(n, min, max, g);
-    std::sort(vec.begin(), vec.end(), c);
-    return vec;
+    if constexpr(std::is_unsigned_v<T>)
+    {
+        std::vector<T> vec;
+        vec.resize(n);
+        std::iota(vec.begin(), vec.end(), T(0));
+        return vec;
+    }
+    else
+    {
+        std::vector<T> vec = random<T>(n, min, max, g);
+        std::sort(vec.begin(), vec.end(), c);
+        return vec;
+    }
 }
 
 template<typename T>

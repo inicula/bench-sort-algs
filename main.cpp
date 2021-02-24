@@ -289,7 +289,20 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
     unsigned currentsize = 1;
     for(u64 i = 2; i <= exp(2, 15); i *= 2)
     {
-        std::cerr << "Marimea vectorului: 2^" << currentsize++ << '\n';
+        bool b = true;
+        for(bool reached : reached_limit)
+        {
+            if(reached == false)
+            {
+                b = false;
+                break;
+            }
+        }
+        if(b == true)
+        {
+            continue;
+        }
+        std::cerr << "Genereaza vector de marime: 2^" << currentsize++ << '\n';
 
         std::random_device rd;
         std::mt19937 gen(rd());
