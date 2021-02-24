@@ -151,28 +151,68 @@ void merge_sort(It begin, It end)
 }
 
 template<typename It>
+auto partition(It begin, const It end)
+{
+    const auto pivot = *(end - 1);
+    auto i = begin;
+    for(auto j = begin; j != (end - 1); ++j)
+    {
+        if(*j <= pivot)
+        {
+            std::swap(*j, *i);
+            ++i;
+        }
+    }
+    std::swap(*i, *(end - 1));
+    return i;
+}
+
+template<typename It, typename Gen>
+auto random_partition(It begin, It end, Gen& gen)
+{
+    const u64 pivotidx = std::uniform_int_distribution<u64>(0, (end - begin) - 1)(gen);
+    std::swap(*(end - 1), *(begin + pivotidx));
+    return partition(begin, end);
+}
+
+template<typename It, typename Gen>
+void quick_sort_helper(It begin, It end, Gen& gen)
+{
+    if((end - begin) > 1)
+    {
+        auto pivot = random_partition(begin, end, gen);
+        quick_sort_helper(begin, pivot, gen);
+        quick_sort_helper(pivot + 1, end, gen);
+    }
+}
+
+template<typename It>
 void quick_sort(It begin, It end)
 {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    quick_sort_helper(begin, end, gen);
 }
 
 template<typename Container, typename = void>
 struct SortMethods
 {
-    static constexpr void (*list[])(typename Container::iterator,
-                                    typename Container::iterator) = {bubble_sort, merge_sort,
-                                                                     std::sort};
-    static constexpr std::string_view namelist[] = {"bubble_sort", "merge_sort", "std::sort"};
+    using It = typename Container::iterator;
+    static constexpr void (*list[])(It, It) = {bubble_sort, merge_sort, std::sort};
+
+    static constexpr const char* namelist[] = {"bubble_sort", "merge_sort", "std::sort"};
 };
 
 template<typename Container>
 struct SortMethods<Container,
                    std::enable_if_t<std::is_unsigned_v<typename Container::value_type>>>
 {
-    static constexpr void (*list[])(typename Container::iterator,
-                                    typename Container::iterator) = {count_sort, bubble_sort,
-                                                                     merge_sort, std::sort};
-    static constexpr std::string_view namelist[] = {"count_sort", "bubble_sort", "merge_sort",
-                                                    "std::sort"};
+    using It = typename Container::iterator;
+    static constexpr void (*list[])(It, It) = {count_sort, bubble_sort, merge_sort, std::sort};
+
+    static constexpr const char* namelist[] = {"count_sort", "bubble_sort", "merge_sort",
+                                               "std::sort"};
 };
 
 template<typename Container>
@@ -196,12 +236,12 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
 
     std::vector<std::vector<u64>> time_list;
     unsigned k = 0;
-    for(auto metoda : method_list)
+    for(auto method : method_list)
     {
         std::cerr << "Sorteaza prin metoda: " << method_names[k++] << "..." << '\n';
         time_list.push_back({});
         int ptwo = 1;
-        for(u64 i = 2; i <= exp(2, 10); i *= 2)
+        for(u64 i = 2; i <= exp(2, 15); i *= 2)
         {
             std::cerr << "Marimea vectorului: 2^" << ptwo++ << '\n';
             std::random_device rd;
@@ -210,7 +250,7 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
             std::vector<T> vec = pred(i, 0u, i, gen, generator_args...);
 
             auto p = std::chrono::high_resolution_clock::now();
-            metoda(vec.begin(), vec.end());
+            method(vec.begin(), vec.end());
             u64 elapsed = get_timepoint_count(p);
 
             if(std::is_sorted(vec.cbegin(), vec.cend()))
