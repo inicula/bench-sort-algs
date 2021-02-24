@@ -292,7 +292,7 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
         if(std::find(reached_limit.cbegin(), reached_limit.cend(), false) ==
            reached_limit.cend())
         {
-            continue;
+            break;
         }
         std::cerr << "Genereaza vector de marime: 2^" << currentsize++ << '\n';
 
