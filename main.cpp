@@ -289,16 +289,8 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
     unsigned currentsize = 1;
     for(u64 i = 2; i <= exp(2, 15); i *= 2)
     {
-        bool b = true;
-        for(bool reached : reached_limit)
-        {
-            if(reached == false)
-            {
-                b = false;
-                break;
-            }
-        }
-        if(b == true)
+        if(std::find(reached_limit.cbegin(), reached_limit.cend(), false) ==
+           reached_limit.cend())
         {
             continue;
         }
