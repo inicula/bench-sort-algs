@@ -241,6 +241,36 @@ void legends()
     std::cout << "])\n";
 }
 
+template<typename Vec, typename Method>
+u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
+{
+    std::vector<u64> elapsed;
+    u64 elapsed_total = 0;
+    bool flag = true;
+    while(elapsed_total < exp(10, 0))
+    {
+        out_vec = in_vec;
+
+        auto tp = std::chrono::high_resolution_clock::now();
+        method(out_vec.begin(), out_vec.end());
+        u64 duration = get_timepoint_count(tp);
+
+        if(flag && !std::is_sorted(out_vec.cbegin(), out_vec.cend()))
+        {
+            return U64MAX;
+        }
+        else
+        {
+            flag = false;
+        }
+
+        elapsed.push_back(duration);
+        elapsed_total += duration;
+    }
+
+    return (std::accumulate(elapsed.cbegin(), elapsed.cend(), 0ull) / elapsed.size());
+}
+
 template<typename T, typename GeneratorFunction>
 void benchmark_sort_methods(const std::string& inputtype, int plotpos, GeneratorFunction pred,
                             auto&&... generator_args)
@@ -270,22 +300,21 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
             {
                 continue;
             }
-
             std::cerr << "Sorteaza prin metoda: " << method_names[m_idx] << "..." << '\n';
 
-            std::vector<T> vec = to_sort;
+            std::vector<T> vec;
+            u64 elapsed = calculate_elapsed(to_sort, vec, method_list[m_idx]);
 
-            auto p = std::chrono::high_resolution_clock::now();
-            method_list[m_idx](vec.begin(), vec.end());
-            u64 elapsed = get_timepoint_count(p);
-
-            if(std::is_sorted(vec.cbegin(), vec.cend()))
+            if(elapsed != U64MAX)
             {
                 time_list[m_idx].push_back(elapsed);
             }
             else
             {
+                std::cerr << "hit this\n";
+                reached_limit[m_idx] = true;
                 std::cerr << "Nu s-a putut sorta din motivul de mai sus\n";
+                continue;
             }
 
             if(elapsed > (exp(10, 10) / 3))

@@ -9,6 +9,7 @@
 #include <iostream>
 
 using u64 = std::uint64_t;
+constexpr u64 U64MAX = std::numeric_limits<u64>::max();
 
 inline std::vector<unsigned int> first_n(const unsigned int n)
 {
