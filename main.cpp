@@ -75,63 +75,26 @@ void merge(const It begin, const It mid, const It end)
     {
         if(*left < *right)
         {
-            if constexpr(std::is_arithmetic_v<T>)
-            {
-                temp.push_back(*left);
-            }
-            else
-            {
-                temp.push_back(std::move(*left));
-            }
+            temp.push_back(std::move(*left));
             ++left;
         }
         else
         {
-            if constexpr(std::is_arithmetic_v<T>)
-            {
-                temp.push_back(*right);
-            }
-            else
-            {
-                temp.push_back(std::move(*right));
-            }
+            temp.push_back(std::move(*right));
             ++right;
         }
     }
 
     if(left != mid)
     {
-        if constexpr(std::is_arithmetic_v<T>)
-        {
-            temp.insert(temp.end(), left, mid);
-        }
-        else
-        {
-            temp.insert(temp.end(), std::make_move_iterator(left),
-                        std::make_move_iterator(mid));
-        }
+        temp.insert(temp.end(), std::make_move_iterator(left), std::make_move_iterator(mid));
     }
     if(right != end)
     {
-        if constexpr(std::is_arithmetic_v<T>)
-        {
-            temp.insert(temp.end(), right, end);
-        }
-        else
-        {
-            temp.insert(temp.end(), std::make_move_iterator(right),
-                        std::make_move_iterator(end));
-        }
+        temp.insert(temp.end(), std::make_move_iterator(right), std::make_move_iterator(end));
     }
 
-    if constexpr(std::is_arithmetic_v<T>)
-    {
-        std::copy(temp.cbegin(), temp.cend(), begin);
-    }
-    else
-    {
-        std::move(temp.begin(), temp.end(), begin);
-    }
+    std::move(temp.begin(), temp.end(), begin);
 }
 
 template<typename It>
