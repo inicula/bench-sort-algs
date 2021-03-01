@@ -172,11 +172,20 @@ template<typename Container, typename = void>
 struct SortMethods
 {
     using It = typename Container::iterator;
-    static constexpr void (*list[])(It, It) = {bubble_sort, merge_sort, quick_sort,
-                                               quick_sort_last, std::sort};
-
+    static constexpr void (*list[])(It, It) = {
+        bubble_sort,
+        merge_sort,
+        quick_sort,
+        quick_sort_last,
+        std::sort
+    };
     static constexpr const char* namelist[] = {
-        "bubble_sort", "merge_sort", "quick_sort (random)", "quick_sort (last)", "std::sort"};
+        "bubble_sort",
+        "merge_sort",
+        "quick_sort (random)",
+        "quick_sort (last)",
+        "std::sort"
+    };
 };
 
 template<typename Container>
@@ -184,12 +193,22 @@ struct SortMethods<Container,
                    std::enable_if_t<std::is_unsigned_v<typename Container::value_type>>>
 {
     using It = typename Container::iterator;
-    static constexpr void (*list[])(It, It) = {count_sort, bubble_sort,     merge_sort,
-                                               quick_sort, quick_sort_last, std::sort};
-
-    static constexpr const char* namelist[] = {"count_sort",        "bubble_sort",
-                                               "merge_sort",        "quick_sort (random)",
-                                               "quick_sort (last)", "std::sort"};
+    static constexpr void (*list[])(It, It) = {
+        count_sort,
+        bubble_sort,
+        merge_sort,
+        quick_sort,
+        quick_sort_last,
+        std::sort
+    };
+    static constexpr const char* namelist[] = {
+        "count_sort",
+        "bubble_sort",
+        "merge_sort",
+        "quick_sort (random)",
+        "quick_sort (last)",
+        "std::sort"
+    };
 };
 
 template<typename Container>
@@ -302,14 +321,22 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
 
 int main()
 {
-    benchmark_sort_methods<unsigned>("random", 1, random<unsigned>);
+    benchmark_sort_methods<unsigned>("random",
+                                     1,
+                                     random<unsigned>);
 
-    benchmark_sort_methods<unsigned>("almost sorted", 2, almost_sorted<unsigned>,
+    benchmark_sort_methods<unsigned>("almost sorted",
+                                     2,
+                                     almost_sorted<unsigned>,
                                      std::less<unsigned>{});
 
-    benchmark_sort_methods<unsigned>("almost sorted (decreasing)", 3,
+    benchmark_sort_methods<unsigned>("almost sorted (decreasing)",
+                                     3,
                                      almost_sorted<unsigned, std::greater<unsigned>>,
                                      std::greater<unsigned>{});
 
-    benchmark_sort_methods<unsigned>("sorted", 4, sorted<unsigned>, std::less<unsigned>{});
+    benchmark_sort_methods<unsigned>("sorted",
+                                     4,
+                                     sorted<unsigned>,
+                                     std::less<unsigned>{});
 }
