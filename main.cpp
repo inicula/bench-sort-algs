@@ -287,10 +287,6 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
                 const auto strsize = string_limit(i);
                 return pred(strsize, 1ull, strsize, gen, generator_args...);
             }
-            else if constexpr(std::is_same_v<T, double>)
-            {
-                return pred(i, 0u, i, gen, generator_args...);
-            }
             else
             {
                 return pred(i, 0u, i, gen, generator_args...);
