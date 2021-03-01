@@ -22,7 +22,7 @@ inline std::vector<unsigned int> first_n(const unsigned int n)
 template<typename Gen>
 __always_inline std::string make_string(std::size_t n, Gen& gen)
 {
-    std::uniform_int_distribution<int> distrib(0, 127);
+    std::uniform_int_distribution<int> distrib(48, 90);
 
     std::string str;
     str.reserve(n);
@@ -119,6 +119,7 @@ consteval u64 exp(u64 x, u64 y)
     return res;
 }
 
+template<typename T>
 constexpr const char* predefined = "plt.xscale('log', base=2)\n"
                                    "plt.yscale('log', base=10)\n"
                                    "plt.gca().set_xticks(xloc)\n"
@@ -126,6 +127,27 @@ constexpr const char* predefined = "plt.xscale('log', base=2)\n"
                                    "plt.grid(True)\n"
                                    "plt.xlabel('no. elements')\n"
                                    "plt.ylabel('nanoseconds')\n";
+
+template<>
+constexpr const char* predefined<std::string> = "plt.xscale('log', base=2)\n"
+                                                "plt.yscale('log', base=10)\n"
+                                                "plt.gca().set_xticks(xloc)\n"
+                                                "plt.gca().set_yticks(yloc)\n"
+                                                "plt.grid(True)\n"
+                                                "plt.xlabel('no. bytes in container (x 4)')\n"
+                                                "plt.ylabel('nanoseconds')\n";
+
+template<typename T>
+constexpr const char* suptitle = "";
+
+template<>
+constexpr const char* suptitle<unsigned> = "plt.suptitle('unsigned values')";
+
+template<>
+constexpr const char* suptitle<double> = "plt.suptitle('double values')";
+
+template<>
+constexpr const char* suptitle<std::string> = "plt.suptitle('std::string objects')";
 
 const std::array<std::string, 6> markers = {"'bs'", "'g^'", "'rP'", "'mD'", "'co'", "'kh'"};
 
@@ -167,4 +189,11 @@ inline void plot_command(const std::vector<std::vector<u64>>& timpi)
         ++current_marker;
     }
     std::cout << ")\n";
+}
+
+inline u64 string_limit(double c)
+{
+    double delta = 1.0 + 8.0 * c * 4.0;
+
+    return (-1 + std::sqrt(delta)) / 2.0;
 }

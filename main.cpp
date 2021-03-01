@@ -40,7 +40,7 @@ void count_sort(It begin, const It end)
 template<typename It>
 void bubble_sort(It begin, const It end)
 {
-    const unsigned size = std::distance(begin, end);
+    const unsigned size = end - begin;
 
     for(unsigned i = 0; i < size - 1; ++i)
     {
@@ -269,7 +269,7 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
     time_list.resize(n_methods);
 
     unsigned currentsize = 1;
-    for(u64 i = 2; i <= exp(2, 15); i *= 2)
+    for(u64 i = 2; i <= exp(2, 24); i *= 2)
     {
         if(std::find(reached_limit.cbegin(), reached_limit.cend(), false) ==
            reached_limit.cend())
@@ -280,7 +280,22 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        const std::vector<T> to_sort = pred(i, 0u, i, gen, generator_args...);
+        const std::vector<T> to_sort = [&]()
+        {
+            if constexpr(std::is_same_v<T, std::string>)
+            {
+                const auto strsize = string_limit(i);
+                return pred(strsize, 1ull, strsize, gen, generator_args...);
+            }
+            else if constexpr(std::is_same_v<T, double>)
+            {
+                return pred(i, 0u, i, gen, generator_args...);
+            }
+            else
+            {
+                return pred(i, 0u, i, gen, generator_args...);
+            }
+        }();
 
         for(unsigned m_idx = 0; m_idx < n_methods; ++m_idx)
         {
@@ -313,30 +328,92 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
     }
 
     subplot_pos(plotpos);
-    std::cout << predefined;
+    std::cout << predefined<T>;
     subplot_title(inputtype);
     plot_command(time_list);
     legends<VectorType>();
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    benchmark_sort_methods<unsigned>("random",
-                                     1,
-                                     random<unsigned>);
+    if(argc != 2)
+    {
+        std::cerr << "Usage: sh makepyplot.sh (unsigned | string | double)\n";
+        return 1;
+    }
 
-    benchmark_sort_methods<unsigned>("almost sorted",
-                                     2,
-                                     almost_sorted<unsigned>,
-                                     std::less<unsigned>{});
+    using T0 = unsigned;
+    using T1 = std::string;
+    using T2 = double;
 
-    benchmark_sort_methods<unsigned>("almost sorted (decreasing)",
-                                     3,
-                                     almost_sorted<unsigned, std::greater<unsigned>>,
-                                     std::greater<unsigned>{});
+    const std::string_view arg = argv[1];
+    if(arg == "unsigned")
+    {
+        std::cout << suptitle<T0> << '\n';
 
-    benchmark_sort_methods<unsigned>("sorted",
-                                     4,
-                                     sorted<unsigned>,
-                                     std::less<unsigned>{});
+        benchmark_sort_methods<T0>("random",
+                                   1,
+                                   random<T0>);
+        benchmark_sort_methods<T0>("almost sorted",
+                                   2,
+                                   almost_sorted<T0>,
+                                   std::less<T0>{});
+        benchmark_sort_methods<T0>("almost sorted (decreasing)",
+                                   3,
+                                   almost_sorted<T0, std::greater<T0>>,
+                                   std::greater<T0>{});
+        benchmark_sort_methods<T0>("sorted",
+                                   4,
+                                   sorted<T0>,
+                                   std::less<T0>{});
+    }
+    else if(arg == "string")
+    {
+        std::cout << suptitle<T1> << '\n';
+
+        benchmark_sort_methods<T1>("random",
+                                   1,
+                                   random<T1, u64>);
+        benchmark_sort_methods<T1>("almost sorted",
+                                   2,
+                                   almost_sorted<T1, std::less<T1>, u64>,
+                                   std::less<T1>{});
+        benchmark_sort_methods<T1>("almost sorted (decreasing)",
+                                   3,
+                                   almost_sorted<T1, std::greater<T1>, u64>,
+                                   std::greater<T1>{});
+        benchmark_sort_methods<T1>("sorted",
+                                   4,
+                                   sorted<T1, std::less<T1>, u64>,
+                                   std::less<T1>{});
+    }
+    else if(arg == "double")
+    {
+        std::cout << suptitle<T2> << '\n';
+
+        benchmark_sort_methods<T2>("random",
+                                   1,
+                                   random<T2>);
+        benchmark_sort_methods<T2>("almost sorted",
+                                   2,
+                                   almost_sorted<T2>,
+                                   std::less<T2>{});
+        benchmark_sort_methods<T2>("almost sorted (decreasing)",
+                                   3,
+                                   almost_sorted<T2, std::greater<T2>>,
+                                   std::greater<T2>{});
+        benchmark_sort_methods<T2>("sorted",
+                                   4,
+                                   sorted<T2>,
+                                   std::less<T2>{});
+    }
+    else
+    {
+        std::cerr << "Usage: ./makepyplot.sh (unsigned | string | double)\n";
+        return 1;
+    }
+    return 0;
 }
+
+//TODO
+//Generate strings of the same length
