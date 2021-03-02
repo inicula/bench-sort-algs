@@ -254,8 +254,8 @@ u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
 }
 
 template<typename T, typename GeneratorFunction>
-void benchmark_sort_methods(const std::string& inputtype, int plotpos, GeneratorFunction pred,
-                            auto&&... generator_args)
+void benchmark_sort_methods(const u64 max_size, const std::string& inputtype, const int plotpos, 
+                            GeneratorFunction pred, auto&&... generator_args)
 {
     using VectorType = std::vector<T>;
 
@@ -269,7 +269,7 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
     time_list.resize(n_methods);
 
     unsigned currentsize = 1;
-    for(u64 i = 2; i <= exp(2, 18); i *= 2)
+    for(u64 i = 2; i <= exp(2, max_size); i *= 2)
     {
         if(std::find(reached_limit.cbegin(), reached_limit.cend(), false) ==
            reached_limit.cend())
@@ -332,9 +332,9 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
 
 int main(int argc, char* argv[])
 {
-    if(argc != 2)
+    if(argc != 3)
     {
-        std::cerr << "Usage: sh makepyplot.sh (unsigned | string | double)\n";
+        std::cerr << "Usage: sh makepyplot.sh (unsigned | string | double) 2^<n'th power>\n";
         return 1;
     }
 
@@ -342,23 +342,39 @@ int main(int argc, char* argv[])
     using T1 = std::string;
     using T2 = double;
 
+    const u64 size = std::stoull(argv[2]);
+    if(size < 1)
+    {
+        std::cerr << "Vector size is too small\n";
+        return 1;
+    }
+    else if(size > 28)
+    {
+        std::cerr << "Vector size is too big\n";
+        return 1;
+    }
+
     const std::string_view arg = argv[1];
     if(arg == "unsigned")
     {
         std::cout << suptitle<T0> << '\n';
 
-        benchmark_sort_methods<T0>("random",
+        benchmark_sort_methods<T0>(size,
+                                   "random",
                                    1,
                                    random<T0>);
-        benchmark_sort_methods<T0>("almost sorted",
+        benchmark_sort_methods<T0>(size,
+                                   "almost sorted",
                                    2,
                                    almost_sorted<T0>,
                                    std::less<T0>{});
-        benchmark_sort_methods<T0>("almost sorted (decreasing)",
+        benchmark_sort_methods<T0>(size,
+                                   "almost sorted (decreasing)",
                                    3,
                                    almost_sorted<T0, std::greater<T0>>,
                                    std::greater<T0>{});
-        benchmark_sort_methods<T0>("sorted",
+        benchmark_sort_methods<T0>(size,
+                                   "sorted",
                                    4,
                                    sorted<T0>,
                                    std::less<T0>{});
@@ -367,18 +383,22 @@ int main(int argc, char* argv[])
     {
         std::cout << suptitle<T1> << '\n';
 
-        benchmark_sort_methods<T1>("random",
+        benchmark_sort_methods<T1>(size,
+                                   "random",
                                    1,
                                    random<T1, u64>);
-        benchmark_sort_methods<T1>("almost sorted",
+        benchmark_sort_methods<T1>(size,
+                                   "almost sorted",
                                    2,
                                    almost_sorted<T1, std::less<T1>, u64>,
                                    std::less<T1>{});
-        benchmark_sort_methods<T1>("almost sorted (decreasing)",
+        benchmark_sort_methods<T1>(size,
+                                   "almost sorted (decreasing)",
                                    3,
                                    almost_sorted<T1, std::greater<T1>, u64>,
                                    std::greater<T1>{});
-        benchmark_sort_methods<T1>("sorted",
+        benchmark_sort_methods<T1>(size,
+                                   "sorted",
                                    4,
                                    sorted<T1, std::less<T1>, u64>,
                                    std::less<T1>{});
@@ -387,27 +407,32 @@ int main(int argc, char* argv[])
     {
         std::cout << suptitle<T2> << '\n';
 
-        benchmark_sort_methods<T2>("random",
+        benchmark_sort_methods<T2>(size,
+                                   "random",
                                    1,
                                    random<T2>);
-        benchmark_sort_methods<T2>("almost sorted",
+        benchmark_sort_methods<T2>(size,
+                                   "almost sorted",
                                    2,
                                    almost_sorted<T2>,
                                    std::less<T2>{});
-        benchmark_sort_methods<T2>("almost sorted (decreasing)",
+        benchmark_sort_methods<T2>(size,
+                                   "almost sorted (decreasing)",
                                    3,
                                    almost_sorted<T2, std::greater<T2>>,
                                    std::greater<T2>{});
-        benchmark_sort_methods<T2>("sorted",
+        benchmark_sort_methods<T2>(size,
+                                   "sorted",
                                    4,
                                    sorted<T2>,
                                    std::less<T2>{});
     }
     else
     {
-        std::cerr << "Usage: ./makepyplot.sh (unsigned | string | double)\n";
+        std::cerr << "Usage: sh makepyplot.sh (unsigned | string | double) 2^<n'th power>\n";
         return 1;
     }
+
     return 0;
 }
 
