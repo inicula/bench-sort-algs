@@ -15,7 +15,7 @@ struct None
 using u64 = std::uint64_t;
 constexpr u64 U64MAX = std::numeric_limits<u64>::max();
 
-inline std::vector<unsigned int> first_n(const unsigned int n)
+std::vector<unsigned int> first_n(const unsigned int n)
 {
     std::vector<unsigned int> vec;
     vec.resize(n);
@@ -24,7 +24,7 @@ inline std::vector<unsigned int> first_n(const unsigned int n)
 }
 
 template<typename Gen>
-__always_inline std::string make_string(std::size_t n, Gen& gen)
+std::string make_string(std::size_t n, Gen& gen)
 {
     std::uniform_int_distribution<int> distrib(65, 122);
 
@@ -164,12 +164,12 @@ constexpr const char* suptitle<std::string> = "plt.suptitle('std::string objects
 
 const std::array<std::string, 6> markers = {"'bs'", "'g^'", "'rP'", "'mD'", "'co'", "'kh'"};
 
-inline std::string size_range(unsigned i)
+std::string size_range(unsigned i)
 {
     return "[2**x for x in range(1, " + std::to_string(i + 1) + ")]";
 }
 
-inline std::string timepoints_array(const std::vector<u64>& vec)
+std::string timepoints_array(const std::vector<u64>& vec)
 {
     std::string str = "[";
     for(auto el : vec)
@@ -181,17 +181,17 @@ inline std::string timepoints_array(const std::vector<u64>& vec)
     return str;
 }
 
-inline void subplot_pos(unsigned i)
+void subplot_pos(unsigned i)
 {
     std::cout << "plt.subplot(22" << i << ")\n";
 }
 
-inline void subplot_title(const std::string& str)
+void subplot_title(const std::string& str)
 {
     std::cout << "plt.title('" << str << "')\n";
 }
 
-inline void plot_command(const std::vector<std::vector<u64>>& timpi)
+void plot_command(const std::vector<std::vector<u64>>& timpi)
 {
     auto current_marker = markers.cbegin();
     std::cout << "plt.plot(";
@@ -204,7 +204,7 @@ inline void plot_command(const std::vector<std::vector<u64>>& timpi)
     std::cout << ")\n";
 }
 
-inline u64 string_limit(const double n_elements)
+u64 string_limit(const double n_elements)
 {
     return (2.0 * std::round(std::sqrt(n_elements)));
 }
