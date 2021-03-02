@@ -269,7 +269,7 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
     time_list.resize(n_methods);
 
     unsigned currentsize = 1;
-    for(u64 i = 2; i <= exp(2, 24); i *= 2)
+    for(u64 i = 2; i <= exp(2, 18); i *= 2)
     {
         if(std::find(reached_limit.cbegin(), reached_limit.cend(), false) ==
            reached_limit.cend())
@@ -289,7 +289,7 @@ void benchmark_sort_methods(const std::string& inputtype, int plotpos, Generator
             }
             else
             {
-                return pred(i, 0u, i, gen, generator_args...);
+                return pred(i, static_cast<T>(0), i, gen, generator_args...);
             }
         }();
 
@@ -411,5 +411,3 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-//TODO
-//Generate strings of the same length

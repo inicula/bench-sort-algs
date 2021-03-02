@@ -8,6 +8,10 @@
 #include <queue>
 #include <iostream>
 
+struct None
+{
+};
+
 using u64 = std::uint64_t;
 constexpr u64 U64MAX = std::numeric_limits<u64>::max();
 
@@ -22,7 +26,7 @@ inline std::vector<unsigned int> first_n(const unsigned int n)
 template<typename Gen>
 __always_inline std::string make_string(std::size_t n, Gen& gen)
 {
-    std::uniform_int_distribution<int> distrib(48, 90);
+    std::uniform_int_distribution<int> distrib(65, 122);
 
     std::string str;
     str.reserve(n);
@@ -39,12 +43,21 @@ __always_inline std::string make_string(std::size_t n, Gen& gen)
 template<typename T, typename U = T, typename Gen = std::mt19937>
 std::vector<T> random(std::size_t n, const U min, const U max, Gen& gen)
 {
-    using distrib_type = std::conditional_t<
-        std::is_same_v<T, std::string>, std::uniform_int_distribution<int>,
-        std::conditional_t<std::is_integral_v<T>, std::uniform_int_distribution<T>,
-                           std::uniform_real_distribution<T>>>;
-
-    distrib_type distrib(min, max);
+    auto distrib = [&]()
+    {
+        if constexpr(std::is_same_v<T, std::string>)
+        {
+            return None{};
+        }
+        else if constexpr(std::is_integral_v<T>)
+        {
+            return std::uniform_int_distribution<T>(min, max);
+        }
+        else
+        {
+            return std::uniform_real_distribution<T>(min, max);
+        }
+    }();
 
     std::vector<T> vec;
     vec.reserve(n);
@@ -53,7 +66,7 @@ std::vector<T> random(std::size_t n, const U min, const U max, Gen& gen)
     {
         if constexpr(std::is_same_v<T, std::string>)
         {
-            vec.push_back(make_string(distrib(gen), gen));
+            vec.push_back(make_string(max, gen));
         }
         else
         {
@@ -191,9 +204,7 @@ inline void plot_command(const std::vector<std::vector<u64>>& timpi)
     std::cout << ")\n";
 }
 
-inline u64 string_limit(double c)
+inline u64 string_limit(const double n_elements)
 {
-    double delta = 1.0 + 8.0 * c * 4.0;
-
-    return (-1 + std::sqrt(delta)) / 2.0;
+    return (2.0 * std::round(std::sqrt(n_elements)));
 }
