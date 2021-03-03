@@ -162,7 +162,7 @@ constexpr const char* suptitle<double> = "plt.suptitle('double values')";
 template<>
 constexpr const char* suptitle<std::string> = "plt.suptitle('std::string objects')";
 
-const std::array<std::string, 6> markers = {"'bs'", "'g^'", "'rP'", "'mD'", "'co'", "'kh'"};
+const std::array<std::string, 7> markers = {"'bs'", "'g^'", "'rP'", "'mD'", "'co'", "'yX'", "'kh'"};
 
 std::string size_range(unsigned i)
 {
@@ -207,4 +207,34 @@ void plot_command(const std::vector<std::vector<u64>>& timpi)
 u64 string_limit(const double n_elements)
 {
     return (2.0 * std::round(std::sqrt(n_elements)));
+}
+
+template<typename T>
+consteval auto get_masks()
+{
+    constexpr int digits = std::numeric_limits<T>::digits - 1;
+    std::array<T, digits + 1> d = {};
+    int current = 0;
+    while(current <= digits)
+    {
+        d[digits - current] = static_cast<T>(1) << current;
+        ++current;
+    }
+    return d;
+}
+
+template<typename T>
+int max_bit_pos(const T value)
+{
+    constexpr auto masks = get_masks<T>();
+    int c_bitpos = std::numeric_limits<T>::digits - 1;
+    for(auto mask : masks)
+    {
+        if(value & mask)
+        {
+            return c_bitpos;
+        }
+        --c_bitpos;
+    }
+    return -1;
 }

@@ -39,6 +39,48 @@ void count_sort(It begin, const It end)
 }
 
 template<typename It>
+It radix_partition(It begin, const It end, const int bitpos)
+{
+    using T = typename std::iterator_traits<It>::value_type;
+
+    It l_begin = begin;
+    while(begin != end)
+    {
+        if(!((*begin) & (static_cast<T>(1) << bitpos)))
+        {
+            std::swap(*l_begin, *begin);
+            ++l_begin;
+        }
+        ++begin;
+    }
+    return l_begin;
+}
+
+template<typename It>
+void radix_helper(It begin, const It end, const int bitpos)
+{
+    if(bitpos < 0)
+    {
+        return;
+    }
+    if((end - begin) > 1)
+    {
+        It part_it = radix_partition(begin, end, bitpos);
+        radix_helper(begin, part_it, bitpos - 1);
+        radix_helper(part_it, end, bitpos - 1);
+    }
+}
+
+template<typename It>
+void radix_sort(It begin, It end)
+{
+    if((end - begin) > 1)
+    {
+        radix_helper(begin, end, max_bit_pos(*std::max_element(begin, end)));
+    }
+}
+
+template<typename It>
 void bubble_sort(It begin, const It end)
 {
     const unsigned size = end - begin;
@@ -196,6 +238,7 @@ struct SortMethods<Container,
     using It = typename Container::iterator;
     static constexpr void (*list[])(It, It) = {
         count_sort,
+        radix_sort,
         bubble_sort,
         merge_sort,
         quick_sort,
@@ -204,6 +247,7 @@ struct SortMethods<Container,
     };
     static constexpr const char* namelist[] = {
         "count_sort",
+        "radix_sort",
         "bubble_sort",
         "merge_sort",
         "quick_sort (random)",
