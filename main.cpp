@@ -28,7 +28,7 @@ void count_sort(It begin, const It end)
     u64 idx = 0;
     for(T i = 0; i <= max; ++i)
     {
-        unsigned int count = freq[i];
+        std::size_t count = freq[i];
         while(count != 0)
         {
             begin[idx] = i;
@@ -83,12 +83,12 @@ void radix_sort(It begin, It end)
 template<typename It>
 void bubble_sort(It begin, const It end)
 {
-    const unsigned size = end - begin;
+    const std::size_t size = end - begin;
 
-    for(unsigned i = 0; i < size - 1; ++i)
+    for(std::size_t i = 0; i < size - 1; ++i)
     {
         bool swapped = false;
-        for(unsigned j = 0; j < size - i - 1; ++j)
+        for(std::size_t j = 0; j < size - i - 1; ++j)
         {
             if(begin[j] > begin[j + 1])
             {
