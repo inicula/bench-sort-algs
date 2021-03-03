@@ -4,8 +4,7 @@
 #include <random>
 #include <chrono>
 #include <algorithm>
-#include <cstring>
-#include <queue>
+#include <array>
 #include <iostream>
 
 struct None
@@ -97,6 +96,7 @@ std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g,
         std::vector<T> vec;
         vec.resize(n);
         std::iota(vec.begin(), vec.end(), T(0));
+        std::sort(vec.begin(), vec.end(), c);
         return vec;
     }
     else

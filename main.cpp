@@ -1,6 +1,7 @@
 #include "helper.h"
 #include <iostream>
 #include <iterator>
+#include <cstring>
 
 template<typename It>
 void count_sort(It begin, const It end)
