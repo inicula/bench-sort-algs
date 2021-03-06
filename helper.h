@@ -114,7 +114,7 @@ u64 get_timepoint_count(const T& timepoint)
     return std::chrono::duration_cast<std::chrono::nanoseconds>(present - timepoint).count();
 }
 
-constexpr u64 exp(u64 x, u64 y)
+constexpr u64 powu64(u64 x, u64 y)
 {
     if(y == 0)
     {

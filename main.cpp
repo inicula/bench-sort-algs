@@ -9,7 +9,7 @@ void count_sort(It begin, const It end)
     using T = typename std::iterator_traits<It>::value_type;
 
     const auto max = *std::max_element(begin, end);
-    if(max > exp(2, 29))
+    if(max > powu64(2, 29))
     {
         std::cerr << "Maximum value too big for count_sort\n";
         return;
@@ -274,7 +274,7 @@ u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
     u64 elapsed_total = 0;
     bool needs_check = true;
 
-    while(elapsed_total < exp(10, 7))
+    while(elapsed_total < powu64(10, 7))
     {
         out_vec = in_vec;
 
@@ -314,7 +314,7 @@ void benchmark_sort_methods(const u64 max_size, const std::string& inputtype, co
     time_list.resize(n_methods);
 
     unsigned currentsize = 1;
-    for(u64 i = 2; i <= exp(2, max_size); i *= 2)
+    for(u64 i = 2; i <= powu64(2, max_size); i *= 2)
     {
         if(std::find(reached_limit.cbegin(), reached_limit.cend(), false) ==
            reached_limit.cend())
@@ -361,7 +361,7 @@ void benchmark_sort_methods(const u64 max_size, const std::string& inputtype, co
                 continue;
             }
 
-            if(elapsed > (exp(10, 10) / 3))
+            if(elapsed > (powu64(10, 10) / 3))
             {
                 reached_limit[m_idx] = true;
             }
