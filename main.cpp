@@ -355,7 +355,6 @@ void benchmark_sort_methods(const u64 max_size, const std::string& inputtype, co
             }
             else
             {
-                std::cerr << "hit this\n";
                 reached_limit[m_idx] = true;
                 std::cerr << "Nu s-a putut sorta din motivul de mai sus\n";
                 continue;
