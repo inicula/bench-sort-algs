@@ -14,14 +14,6 @@ struct None
 using u64 = std::uint64_t;
 constexpr u64 U64MAX = std::numeric_limits<u64>::max();
 
-std::vector<unsigned int> first_n(const unsigned int n)
-{
-    std::vector<unsigned int> vec;
-    vec.resize(n);
-    std::iota(vec.begin(), vec.end(), 0u);
-    return vec;
-}
-
 template<typename Gen>
 std::string make_string(std::size_t n, Gen& gen)
 {
