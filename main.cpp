@@ -18,7 +18,7 @@ void count_sort(It begin, const It end)
     std::vector<T> freq;
     freq.resize(max + 1);
 
-    auto it = begin;
+    It it = begin;
     while(it != end)
     {
         ++freq[*it];
@@ -111,8 +111,8 @@ void merge(const It begin, const It mid, const It end)
     std::vector<T> temp;
     temp.reserve(end - begin);
 
-    auto left = begin;
-    auto right = mid;
+    It left = begin;
+    It right = mid;
 
     while(left != mid && right != end)
     {
@@ -149,7 +149,7 @@ void merge_sort(It begin, It end)
         return;
     }
 
-    auto mid = begin + size / 2;
+    It mid = begin + size / 2;
     merge_sort(begin, mid);
     merge_sort(mid, end);
 
@@ -157,11 +157,11 @@ void merge_sort(It begin, It end)
 }
 
 template<typename It>
-auto partition(It begin, const It end)
+It partition(It begin, const It end)
 {
     const auto pivot = *(end - 1);
-    auto i = begin;
-    for(auto j = begin; j != (end - 1); ++j)
+    It i = begin;
+    for(It j = begin; j != (end - 1); ++j)
     {
         if(*j <= pivot)
         {
@@ -174,7 +174,7 @@ auto partition(It begin, const It end)
 }
 
 template<typename It, typename Gen>
-auto random_partition(It begin, It end, Gen& gen)
+It random_partition(It begin, It end, Gen& gen)
 {
     const u64 pivotidx = std::uniform_int_distribution<u64>(0, (end - begin) - 1)(gen);
     std::swap(*(end - 1), *(begin + pivotidx));
@@ -186,7 +186,7 @@ void quick_sort_helper(It begin, It end, Gen& gen)
 {
     if((end - begin) > 1)
     {
-        auto pivot = random_partition(begin, end, gen);
+        It pivot = random_partition(begin, end, gen);
         quick_sort_helper(begin, pivot, gen);
         quick_sort_helper(pivot + 1, end, gen);
     }
@@ -205,7 +205,7 @@ void quick_sort_last(It begin, It end)
 {
     if((end - begin) > 1)
     {
-        auto pivot = partition(begin, end);
+        It pivot = partition(begin, end);
         quick_sort_last(begin, pivot);
         quick_sort_last(pivot + 1, end);
     }
