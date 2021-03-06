@@ -423,6 +423,11 @@ int main(int argc, char* argv[])
                                    4,
                                    sorted<T0>,
                                    std::less<T0>{});
+        benchmark_sort_methods<T0>(size,
+                                   "sorted (decreasing)",
+                                   5,
+                                   sorted<T0, std::greater<T0>>,
+                                   std::greater<T0>{});
     }
     else if(arg == "string")
     {
@@ -447,6 +452,11 @@ int main(int argc, char* argv[])
                                    4,
                                    sorted<T1, std::less<T1>, u64>,
                                    std::less<T1>{});
+        benchmark_sort_methods<T1>(size,
+                                   "sorted (decreasing)",
+                                   5,
+                                   sorted<T1, std::greater<T1>, u64>,
+                                   std::greater<T1>{});
     }
     else if(arg == "double")
     {
@@ -471,6 +481,11 @@ int main(int argc, char* argv[])
                                    4,
                                    sorted<T2>,
                                    std::less<T2>{});
+        benchmark_sort_methods<T2>(size,
+                                   "sorted (decreasing)",
+                                   5,
+                                   sorted<T2, std::greater<T2>>,
+                                   std::greater<T2>{});
     }
     else
     {

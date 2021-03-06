@@ -82,7 +82,7 @@ std::vector<T> almost_sorted(const std::size_t n, const U min, const U max, Gen&
                              Comp c = Comp{})
 {
     std::vector<T> vec = random<T>(n, min, max, g);
-    auto endpoint = vec.end() - (vec.size() / 20);
+    auto endpoint = vec.end() - std::max(1ull, (n * 5ull) / 100ull);
     std::sort(vec.begin(), endpoint, c);
     return vec;
 }
@@ -183,7 +183,7 @@ std::string timepoints_array(const std::vector<u64>& vec)
 
 void subplot_pos(unsigned i)
 {
-    std::cout << "plt.subplot(22" << i << ")\n";
+    std::cout << "plt.subplot(23" << i << ")\n";
 }
 
 void subplot_title(const std::string& str)
