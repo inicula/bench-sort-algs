@@ -8,8 +8,15 @@ void count_sort(It begin, const It end)
 {
     using T = typename std::iterator_traits<It>::value_type;
 
+    const u64 size = end - begin;
+    if(size <= 1)
+    {
+        return;
+    }
+
     const auto max = *std::max_element(begin, end);
-    if(max > powu64(2, 29))
+    const u64 bytes_needed = size * sizeof(T) + (static_cast<u64>(max) + 1ull) * sizeof(T);
+    if(bytes_needed >= (4ull * powu64(10, 9)))
     {
         std::cerr << "Maximum value too big for count_sort\n";
         return;
