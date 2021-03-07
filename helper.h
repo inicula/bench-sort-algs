@@ -99,6 +99,19 @@ std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g,
     }
 }
 
+template<typename T, typename U = T, typename Gen = std::mt19937>
+std::vector<T> one_element(const std::size_t n, const U, const U max, Gen& gen)
+{
+    if constexpr(std::is_same_v<T, std::string>)
+    {
+        return std::vector<T>(n, make_string(max, gen));
+    }
+    else
+    {
+        return std::vector<T>(n, max);
+    }
+}
+
 template<typename T>
 u64 get_timepoint_count(const T& timepoint)
 {

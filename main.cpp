@@ -3,6 +3,10 @@
 #include <iterator>
 #include <cstring>
 
+constexpr u64 callstack_limit = 1ull << 16ull;
+bool errflag = false;
+std::string why;
+
 template<typename It>
 void count_sort(It begin, const It end)
 {
@@ -18,7 +22,8 @@ void count_sort(It begin, const It end)
     const u64 bytes_needed = size * sizeof(T) + (static_cast<u64>(max) + 1ull) * sizeof(T);
     if(bytes_needed >= (4ull * powu64(10, 9)))
     {
-        std::cerr << "Maximum value too big for count_sort\n";
+        errflag = true;
+        why = "Input-ul necesita depasirea limitei de memorie.";
         return;
     }
 
@@ -189,13 +194,27 @@ It random_partition(It begin, It end, Gen& gen)
 }
 
 template<typename It, typename Gen>
-void quick_sort_helper(It begin, It end, Gen& gen)
+void quick_sort_helper(It begin, It end, Gen& gen, std::size_t& rcall)
 {
+    if(errflag)
+    {
+        return;
+    }
+    if(rcall >= callstack_limit)
+    {
+        errflag = true;
+        why = "Input-ul necesita depasirea limitei call stack-ului.";
+        return;
+    }
     if((end - begin) > 1)
     {
         It pivot = random_partition(begin, end, gen);
-        quick_sort_helper(begin, pivot, gen);
-        quick_sort_helper(pivot + 1, end, gen);
+        ++rcall;
+        quick_sort_helper(begin, pivot, gen, rcall);
+        --rcall;
+        ++rcall;
+        quick_sort_helper(pivot + 1, end, gen, rcall);
+        --rcall;
     }
 }
 
@@ -204,18 +223,40 @@ void quick_sort(It begin, It end)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    quick_sort_helper(begin, end, gen);
+    std::size_t rcall = 1;
+    quick_sort_helper(begin, end, gen, rcall);
+}
+
+template<typename It>
+void quick_sort_last_helper(It begin, It end, std::size_t& rcall)
+{
+    if(errflag)
+    {
+        return;
+    }
+    if(rcall >= callstack_limit)
+    {
+        errflag = true;
+        why = "Input-ul necesita depasirea limitei call stack-ului.";
+        return;
+    }
+    if((end - begin) > 1)
+    {
+        It pivot = partition(begin, end);
+        ++rcall;
+        quick_sort_last_helper(begin, pivot, rcall);
+        --rcall;
+        ++rcall;
+        quick_sort_last_helper(pivot + 1, end, rcall);
+        --rcall;
+    }
 }
 
 template<typename It>
 void quick_sort_last(It begin, It end)
 {
-    if((end - begin) > 1)
-    {
-        It pivot = partition(begin, end);
-        quick_sort_last(begin, pivot);
-        quick_sort_last(pivot + 1, end);
-    }
+    std::size_t rcall = 1;
+    quick_sort_last_helper(begin, end, rcall);
 }
 
 template<typename Container, typename = void>
@@ -289,7 +330,7 @@ u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
         method(out_vec.begin(), out_vec.end());
         u64 duration = get_timepoint_count(tp);
 
-        if(needs_check && !std::is_sorted(out_vec.cbegin(), out_vec.cend()))
+        if(errflag || (needs_check && !std::is_sorted(out_vec.cbegin(), out_vec.cend())))
         {
             return U64MAX;
         }
@@ -328,7 +369,8 @@ void benchmark_sort_methods(const u64 max_size, const std::string& inputtype, co
         {
             break;
         }
-        std::cerr << "Genereaza vector de marime: 2^" << currentsize++ << '\n';
+        std::cerr << "Genereaza vector de marime: 2^" << currentsize++ 
+                  << " [TIP: " << inputtype << "]\n";
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -354,7 +396,7 @@ void benchmark_sort_methods(const u64 max_size, const std::string& inputtype, co
             std::cerr << "Sorteaza prin metoda: " << method_names[m_idx] << "..." << '\n';
 
             std::vector<T> vec;
-            u64 elapsed = calculate_elapsed(to_sort, vec, method_list[m_idx]);
+            const u64 elapsed = calculate_elapsed(to_sort, vec, method_list[m_idx]);
 
             if(elapsed != U64MAX)
             {
@@ -363,11 +405,13 @@ void benchmark_sort_methods(const u64 max_size, const std::string& inputtype, co
             else
             {
                 reached_limit[m_idx] = true;
-                std::cerr << "Nu s-a putut sorta din motivul de mai sus\n";
+                std::cerr << "Algoritmul nu a putut sorta input-ul din motivul urmator: " << why << '\n';
+                errflag = false;
+                why.clear();
                 continue;
             }
 
-            if(elapsed > (powu64(10, 10) / 3))
+            if(elapsed > (powu64(10, 10) / 4))
             {
                 reached_limit[m_idx] = true;
             }
@@ -434,6 +478,10 @@ int main(int argc, char* argv[])
                                    5,
                                    sorted<T0, std::greater<T0>>,
                                    std::greater<T0>{});
+        benchmark_sort_methods<T0>(size,
+                                   "filled with one element",
+                                   6,
+                                   one_element<T0>);
     }
     else if(arg == "string")
     {
@@ -463,6 +511,10 @@ int main(int argc, char* argv[])
                                    5,
                                    sorted<T1, std::greater<T1>, u64>,
                                    std::greater<T1>{});
+        benchmark_sort_methods<T1>(size,
+                                   "filled with one element",
+                                   6,
+                                   one_element<T1, u64>);
     }
     else if(arg == "double")
     {
@@ -492,6 +544,10 @@ int main(int argc, char* argv[])
                                    5,
                                    sorted<T2, std::greater<T2>>,
                                    std::greater<T2>{});
+        benchmark_sort_methods<T2>(size,
+                                   "filled with one element",
+                                   6,
+                                   one_element<T2>);
     }
     else
     {
