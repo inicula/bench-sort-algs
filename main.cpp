@@ -369,8 +369,8 @@ void legends(const auto& namelist)
 template<typename Vec, typename Method>
 u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
 {
-    std::vector<u64> elapsed;
     u64 elapsed_total = 0;
+    u64 iterations = 0;
     bool needs_check = true;
 
     while(elapsed_total < powu64(10, 7))
@@ -390,11 +390,11 @@ u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
             needs_check = false;
         }
 
-        elapsed.push_back(duration);
         elapsed_total += duration;
+        ++iterations;
     }
 
-    return (std::accumulate(elapsed.cbegin(), elapsed.cend(), 0ull) / elapsed.size());
+    return elapsed_total / iterations;
 }
 
 template<typename T, typename GeneratorFunction>
