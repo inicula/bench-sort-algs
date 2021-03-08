@@ -3,6 +3,8 @@
 #include <iterator>
 #include <cstring>
 
+constexpr const char* usage = "Usage: sh makepyplot.sh (unsigned | string | double) 2^<n'th power> [sort method names]";
+constexpr const char* usage_avail= "sh makeplot.sh pentru a afisa algoritmii disponibili";
 constexpr u64 callstack_limit = 1ull << 16ull;
 bool errflag = false;
 std::string why;
@@ -259,6 +261,9 @@ void quick_sort_last(It begin, It end)
     quick_sort_last_helper(begin, end, rcall);
 }
 
+template<typename Container>
+using sort_func_t = void (*)(typename Container::iterator, typename Container::iterator);
+
 template<typename Container, typename = void>
 struct SortMethods
 {
@@ -270,11 +275,11 @@ struct SortMethods
         quick_sort_last,
         std::sort
     };
-    static constexpr const char* namelist[] = {
+    static constexpr std::string_view namelist[] = {
         "bubble_sort",
         "merge_sort",
-        "quick_sort (random)",
-        "quick_sort (last)",
+        "quick_sort_rand",
+        "quick_sort_last",
         "std::sort"
     };
 };
@@ -293,22 +298,68 @@ struct SortMethods<Container,
         quick_sort_last,
         std::sort
     };
-    static constexpr const char* namelist[] = {
+    static constexpr std::string_view namelist[] = {
         "count_sort",
         "radix_sort",
         "bubble_sort",
         "merge_sort",
-        "quick_sort (random)",
-        "quick_sort (last)",
+        "quick_sort_rand",
+        "quick_sort_last",
         "std::sort"
     };
 };
 
 template<typename Container>
-void legends()
+struct SortFunctions
+{
+    using func_t = sort_func_t<Container>;
+
+    bool empty() const
+    {
+        return fptrs.empty() || names.empty();
+    }
+
+    std::vector<func_t> fptrs;
+    std::vector<std::string_view> names;
+};
+
+template<typename T>
+auto get_sort_methods(const int argc, const char* argv[])
+{
+    using VecType = std::vector<T>;
+
+    const auto& list = SortMethods<VecType>::list;
+    const auto& namelist = SortMethods<VecType>::namelist;
+
+    SortFunctions<VecType> sf;
+
+    if(argc == 3)
+    {
+        sf.fptrs = std::vector<typename SortFunctions<VecType>::func_t>(std::begin(list), std::end(list));
+        sf.names = std::vector<std::string_view>(std::begin(namelist), std::end(namelist));
+        return sf;
+    }
+
+    for(int i = 3; i < argc; ++i)
+    {
+        for(unsigned j = 0; j < std::size(namelist); ++j)
+        {
+            if(namelist[j] == argv[i])
+            {
+                sf.fptrs.push_back(list[j]);
+                sf.names.push_back(namelist[j]);
+                break;
+            }
+        }
+    }
+
+    return sf;
+}
+
+void legends(const auto& namelist)
 {
     std::cout << "plt.legend([";
-    for(auto l : SortMethods<Container>::namelist)
+    for(auto l : namelist)
     {
         std::cout << "'" << l << "', ";
     }
@@ -347,16 +398,13 @@ u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
 }
 
 template<typename T, typename GeneratorFunction>
-void benchmark_sort_methods(const u64 max_size, const std::string& inputtype, const int plotpos, 
+void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const std::string& inputtype, const int plotpos, 
                             GeneratorFunction pred, auto&&... generator_args)
 {
-    using VectorType = std::vector<T>;
-
-    const auto& method_list = SortMethods<VectorType>::list;
-    const auto& method_names = SortMethods<VectorType>::namelist;
-    constexpr auto n_methods = std::size(method_list);
-    std::array<bool, n_methods> reached_limit;
-    std::memset(reached_limit.data(), false, n_methods);
+    const auto& method_list = sort_funcs.fptrs;
+    const auto& method_names = sort_funcs.names;
+    const auto n_methods = std::size(method_list);
+    std::vector<bool> reached_limit(n_methods, false);
 
     std::vector<std::vector<u64>> time_list;
     time_list.resize(n_methods);
@@ -422,136 +470,201 @@ void benchmark_sort_methods(const u64 max_size, const std::string& inputtype, co
     std::cout << predefined<T>;
     subplot_title(inputtype);
     plot_command(time_list);
-    legends<VectorType>();
+    legends(method_names);
 }
 
-int main(int argc, char* argv[])
+int main(int argc, const char* argv[])
 {
-    if(argc != 3)
-    {
-        std::cerr << "Usage: sh makepyplot.sh (unsigned | string | double) 2^<n'th power>\n";
-        return 1;
-    }
-
     using T0 = unsigned;
     using T1 = std::string;
     using T2 = double;
 
+    if(argc == 1)
+    {
+        int k = 1;
+        std::cerr << "Algoritmi pentru valori unsigned:\n";
+        for(auto mname : SortMethods<std::vector<unsigned>>::namelist)
+        {
+            std::cerr << k << ". " << mname << '\n';
+            ++k;
+        }
+
+        k = 1;
+        std::cerr << "Algoritmi generici:\n";
+        for(auto mname : SortMethods<std::vector<std::string>>::namelist)
+        {
+            std::cerr << k << ". " << mname << '\n';
+            ++k;
+        }
+    }
+
+    if(argc < 3)
+    {
+        std::cerr << usage << '\n';
+        return 1;
+    }
+
     const u64 size = std::stoull(argv[2]);
     if(size < 1)
     {
-        std::cerr << "Vector size is too small\n";
+        std::cerr << "Marimea vectorului e prea mica\n";
         return 1;
     }
     else if(size > 28)
     {
-        std::cerr << "Vector size is too big\n";
+        std::cerr << "Marimea vectorului e prea mare\n";
         return 1;
     }
 
     const std::string_view arg = argv[1];
     if(arg == "unsigned")
     {
+        auto sort_methods = get_sort_methods<T0>(argc, argv);
+        if(sort_methods.empty())
+        {
+            std::cerr << "Vectorul de metode este gol\n";
+            std::cerr << usage << '\n';
+            std::cerr << usage_avail << '\n';
+            return 1;
+        }
+
         std::cout << suptitle<T0> << '\n';
 
         benchmark_sort_methods<T0>(size,
+                                   sort_methods,
                                    "random",
                                    1,
                                    random<T0>);
         benchmark_sort_methods<T0>(size,
+                                   sort_methods,
                                    "almost sorted",
                                    2,
                                    almost_sorted<T0>,
                                    std::less<T0>{});
         benchmark_sort_methods<T0>(size,
+                                   sort_methods,
                                    "almost sorted (decreasing)",
                                    3,
                                    almost_sorted<T0, std::greater<T0>>,
                                    std::greater<T0>{});
         benchmark_sort_methods<T0>(size,
+                                   sort_methods,
                                    "sorted",
                                    4,
                                    sorted<T0>,
                                    std::less<T0>{});
         benchmark_sort_methods<T0>(size,
+                                   sort_methods,
                                    "sorted (decreasing)",
                                    5,
                                    sorted<T0, std::greater<T0>>,
                                    std::greater<T0>{});
         benchmark_sort_methods<T0>(size,
+                                   sort_methods,
                                    "filled with one element",
                                    6,
                                    one_element<T0>);
     }
     else if(arg == "string")
     {
+        auto sort_methods = get_sort_methods<T1>(argc, argv);
+        if(sort_methods.empty())
+        {
+            std::cerr << "Vectorul de metode este gol\n";
+            std::cerr << usage << '\n';
+            std::cerr << usage_avail << '\n';
+            return 1;
+        }
+
         std::cout << suptitle<T1> << '\n';
 
         benchmark_sort_methods<T1>(size,
+                                   sort_methods,
                                    "random",
                                    1,
                                    random<T1, u64>);
         benchmark_sort_methods<T1>(size,
+                                   sort_methods,
                                    "almost sorted",
                                    2,
                                    almost_sorted<T1, std::less<T1>, u64>,
                                    std::less<T1>{});
         benchmark_sort_methods<T1>(size,
+                                   sort_methods,
                                    "almost sorted (decreasing)",
                                    3,
                                    almost_sorted<T1, std::greater<T1>, u64>,
                                    std::greater<T1>{});
         benchmark_sort_methods<T1>(size,
+                                   sort_methods,
                                    "sorted",
                                    4,
                                    sorted<T1, std::less<T1>, u64>,
                                    std::less<T1>{});
         benchmark_sort_methods<T1>(size,
+                                   sort_methods,
                                    "sorted (decreasing)",
                                    5,
                                    sorted<T1, std::greater<T1>, u64>,
                                    std::greater<T1>{});
         benchmark_sort_methods<T1>(size,
+                                   sort_methods,
                                    "filled with one element",
                                    6,
                                    one_element<T1, u64>);
     }
     else if(arg == "double")
     {
+        auto sort_methods = get_sort_methods<T2>(argc, argv);
+        if(sort_methods.empty())
+        {
+            std::cerr << "Vectorul de metode este gol\n";
+            std::cerr << usage << '\n';
+            std::cerr << usage_avail << '\n';
+            return 1;
+        }
+
         std::cout << suptitle<T2> << '\n';
 
         benchmark_sort_methods<T2>(size,
+                                   sort_methods,
                                    "random",
                                    1,
                                    random<T2>);
         benchmark_sort_methods<T2>(size,
+                                   sort_methods,
                                    "almost sorted",
                                    2,
                                    almost_sorted<T2>,
                                    std::less<T2>{});
         benchmark_sort_methods<T2>(size,
+                                   sort_methods,
                                    "almost sorted (decreasing)",
                                    3,
                                    almost_sorted<T2, std::greater<T2>>,
                                    std::greater<T2>{});
         benchmark_sort_methods<T2>(size,
+                                   sort_methods,
                                    "sorted",
                                    4,
                                    sorted<T2>,
                                    std::less<T2>{});
         benchmark_sort_methods<T2>(size,
+                                   sort_methods,
                                    "sorted (decreasing)",
                                    5,
                                    sorted<T2, std::greater<T2>>,
                                    std::greater<T2>{});
         benchmark_sort_methods<T2>(size,
+                                   sort_methods,
                                    "filled with one element",
                                    6,
                                    one_element<T2>);
     }
     else
     {
-        std::cerr << "Usage: sh makepyplot.sh (unsigned | string | double) 2^<n'th power>\n";
+        std::cerr << usage << '\n';
+        std::cerr << usage_avail << '\n';
         return 1;
     }
 

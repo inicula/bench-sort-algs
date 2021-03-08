@@ -152,7 +152,7 @@ constexpr const char* predefined<std::string> = "plt.xscale('log', base=2)\n"
                                                 "plt.gca().set_xticks(xloc)\n"
                                                 "plt.gca().set_yticks(yloc)\n"
                                                 "plt.grid(True)\n"
-                                                "plt.xlabel('no. bytes in container (x 4)')\n"
+                                                "plt.xlabel('no. bytes in input (x 4)')\n"
                                                 "plt.ylabel('nanoseconds')\n";
 
 template<typename T>
