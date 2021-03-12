@@ -53,7 +53,7 @@ void count_sort(It begin, const It end)
 }
 
 template<typename It>
-It radix_partition(It begin, const It end, const int bitpos)
+__always_inline It radix_partition(It begin, const It end, const int bitpos)
 {
     using T = typename std::iterator_traits<It>::value_type;
 
@@ -118,7 +118,7 @@ void bubble_sort(It begin, const It end)
 }
 
 template<typename It>
-void merge(const It begin, const It mid, const It end)
+__always_inline void merge(const It begin, const It mid, const It end)
 {
     using T = typename std::iterator_traits<It>::value_type;
 
@@ -171,7 +171,7 @@ void merge_sort(It begin, It end)
 }
 
 template<typename It>
-It partition(It begin, const It end)
+__always_inline It partition(It begin, const It end)
 {
     const auto pivot = *(end - 1);
     It i = begin;
@@ -188,7 +188,7 @@ It partition(It begin, const It end)
 }
 
 template<typename It, typename Gen>
-It random_partition(It begin, It end, Gen& gen)
+__always_inline It random_partition(It begin, It end, Gen& gen)
 {
     const u64 pivotidx = std::uniform_int_distribution<u64>(0, (end - begin) - 1)(gen);
     std::swap(*(end - 1), *(begin + pivotidx));
