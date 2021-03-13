@@ -211,7 +211,7 @@ void plot_command(const std::vector<std::vector<u64>>& timpi)
 
 u64 string_limit(const double n_elements)
 {
-    return (2.0 * std::round(std::sqrt(n_elements)));
+    return (2.0 * std::floor(std::sqrt(n_elements)));
 }
 
 template<typename T>
