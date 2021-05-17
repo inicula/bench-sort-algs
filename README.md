@@ -2,4 +2,8 @@
 
 Proiect SDA. Benchmark-ul unor algoritmi de sortare (pe valori unsigned, double si std::string).
 
-Necesita un compilator compatibil cu C++20 si libfmt7.
+Necesita:
+
+1. compilator compatibil cu c++20
+2. libfmt7
+3. python3 si matplotlib pentru generarea graficului
