@@ -1,7 +1,4 @@
 #include "helper.h"
-#include <iostream>
-#include <iterator>
-#include <cstring>
 
 constexpr const char* usage = "Usage: sh makepyplot.sh (unsigned | string | double) 2^<n'th power> [sort method names]";
 constexpr const char* usage_avail= "sh makeplot.sh pentru a afisa algoritmii disponibili";
@@ -358,12 +355,12 @@ auto get_sort_methods(const int argc, const char* argv[])
 
 void legends(const auto& namelist)
 {
-    std::cout << "plt.legend([";
+    fmt::print("plt.legend([");
     for(auto l : namelist)
     {
-        std::cout << "'" << l << "', ";
+        fmt::print("'{}', ", l);
     }
-    std::cout << "])\n";
+    fmt::print("])\n");
 }
 
 template<typename Vec, typename Method>
@@ -416,8 +413,8 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const in
         {
             break;
         }
-        std::cerr << "Genereaza vector de marime: 2^" << currentsize++ 
-                  << " [TIP: " << gmethod.description << "]\n";
+        fmt::print(stderr, "Genereaza vector de marime: 2^{} [TIP: {}]\n", currentsize++,
+                   gmethod.description);
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -440,7 +437,7 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const in
             {
                 continue;
             }
-            std::cerr << "Sorteaza prin metoda: " << method_names[m_idx] << "..." << '\n';
+            fmt::print(stderr, "Sorteaza prin metoda: {} ...\n", method_names[m_idx]);
 
             std::vector<T> vec;
             const u64 elapsed = calculate_elapsed(to_sort, vec, method_list[m_idx]);
@@ -451,8 +448,11 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const in
             }
             else
             {
+                fmt::print(stderr,
+                           "Algoritmul nu a putut sorta input-ul din motivul urmator: {}\n",
+                           method_names[m_idx]);
+
                 reached_limit[m_idx] = true;
-                std::cerr << "Algoritmul nu a putut sorta input-ul din motivul urmator: " << why << '\n';
                 errflag = false;
                 why.clear();
                 continue;
@@ -466,7 +466,7 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const in
     }
 
     subplot_pos(plotpos);
-    std::cout << predefined<T>;
+    fmt::print(predefined<T>);
     subplot_title(gmethod.description);
     plot_command(time_list);
     legends(method_names);
@@ -480,38 +480,38 @@ int main(int argc, const char* argv[])
 
     if(argc == 1)
     {
+        fmt::print("Algoritmi pentru valori unsigned\n");
         int k = 1;
-        std::cerr << "Algoritmi pentru valori unsigned:\n";
         for(auto mname : SortMethods<std::vector<unsigned>>::namelist)
         {
-            std::cerr << k << ". " << mname << '\n';
+            fmt::print("{}. {}\n", k, mname);
             ++k;
         }
 
+        fmt::print("Algoritmi generici\n");
         k = 1;
-        std::cerr << "Algoritmi generici:\n";
         for(auto mname : SortMethods<std::vector<std::string>>::namelist)
         {
-            std::cerr << k << ". " << mname << '\n';
+            fmt::print("{}. {}\n", k, mname);
             ++k;
         }
     }
 
     if(argc < 3)
     {
-        std::cerr << usage << '\n';
+        fmt::print("{}\n", usage);
         return 1;
     }
 
     const u64 size = std::stoull(argv[2]);
     if(size < 1)
     {
-        std::cerr << "Marimea vectorului e prea mica\n";
+        fmt::print("Marimea vectorului e prea mica\n");
         return 1;
     }
     else if(size > 28)
     {
-        std::cerr << "Marimea vectorului e prea mare\n";
+        fmt::print("Marimea vectorului e prea mare\n");
         return 1;
     }
 
@@ -522,14 +522,11 @@ int main(int argc, const char* argv[])
         auto sort_methods = get_sort_methods<T0>(argc, argv);
         if(sort_methods.empty())
         {
-            std::cerr << "Vectorul de metode este gol\n";
-            std::cerr << usage << '\n';
-            std::cerr << usage_avail << '\n';
+            fmt::print(stderr, "Vectorul de metode este gol\n{}\n{}\n", usage, usage_avail);
             return 1;
         }
 
-        std::cout << pyheader << '\n';
-        std::cout << suptitle<T0> << '\n';
+        fmt::print("{}{}", pyheader, suptitle<T0>);
 
         for(const auto& gmethod : GeneratorMethods<T0>{})
         {
@@ -541,14 +538,11 @@ int main(int argc, const char* argv[])
         auto sort_methods = get_sort_methods<T1>(argc, argv);
         if(sort_methods.empty())
         {
-            std::cerr << "Vectorul de metode este gol\n";
-            std::cerr << usage << '\n';
-            std::cerr << usage_avail << '\n';
+            fmt::print(stderr, "Vectorul de metode este gol\n{}\n{}\n", usage, usage_avail);
             return 1;
         }
 
-        std::cout << pyheader << '\n';
-        std::cout << suptitle<T1> << '\n';
+        fmt::print("{}{}", pyheader, suptitle<T1>);
 
         for(const auto& gmethod : GeneratorMethods<T1, u64>{})
         {
@@ -560,14 +554,11 @@ int main(int argc, const char* argv[])
         auto sort_methods = get_sort_methods<T2>(argc, argv);
         if(sort_methods.empty())
         {
-            std::cerr << "Vectorul de metode este gol\n";
-            std::cerr << usage << '\n';
-            std::cerr << usage_avail << '\n';
+            fmt::print(stderr, "Vectorul de metode este gol\n{}\n{}\n", usage, usage_avail);
             return 1;
         }
 
-        std::cout << pyheader << '\n';
-        std::cout << suptitle<T2> << '\n';
+        fmt::print("{}{}", pyheader, suptitle<T2>);
 
         for(const auto& gmethod : GeneratorMethods<T2>{})
         {
@@ -576,12 +567,11 @@ int main(int argc, const char* argv[])
     }
     else
     {
-        std::cerr << usage << '\n';
-        std::cerr << usage_avail << '\n';
+        fmt::print(stderr, "{}\n{}\n", usage, usage_avail);
         return 1;
     }
 
-    std::cout << "plt.show()\n";
+    fmt::print("plt.show()\n");
     return 0;
 }
 

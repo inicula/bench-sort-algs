@@ -1,11 +1,11 @@
 #pragma once
+#include <fmt/core.h>
 #include <string>
 #include <vector>
 #include <random>
 #include <chrono>
 #include <algorithm>
 #include <array>
-#include <iostream>
 
 struct None
 {
@@ -162,15 +162,15 @@ template<typename T>
 constexpr const char* suptitle = "";
 
 template<>
-constexpr const char* suptitle<unsigned> = "plt.suptitle('unsigned values')";
+constexpr const char* suptitle<unsigned> = "plt.suptitle('unsigned values')\n";
 
 template<>
-constexpr const char* suptitle<double> = "plt.suptitle('double values')";
+constexpr const char* suptitle<double> = "plt.suptitle('double values')\n";
 
 template<>
-constexpr const char* suptitle<std::string> = "plt.suptitle('std::string objects')";
+constexpr const char* suptitle<std::string> = "plt.suptitle('std::string objects')\n";
 
-const std::array<std::string, 7> markers = {"'bs'", "'g^'", "'rP'", "'mD'", "'co'", "'yX'", "'kh'"};
+const std::array<const char*, 7> markers = {"'bs'", "'g^'", "'rP'", "'mD'", "'co'", "'yX'", "'kh'"};
 
 std::string size_range(unsigned i)
 {
@@ -191,25 +191,25 @@ std::string timepoints_array(const std::vector<u64>& vec)
 
 void subplot_pos(unsigned i)
 {
-    std::cout << "plt.subplot(23" << i << ")\n";
+    fmt::print("plt.subplot(23{})\n", i);
 }
 
 void subplot_title(const std::string& str)
 {
-    std::cout << "plt.title('" << str << "')\n";
+    fmt::print("plt.title('{}')\n", str);
 }
 
 void plot_command(const std::vector<std::vector<u64>>& timpi)
 {
     auto current_marker = markers.cbegin();
-    std::cout << "plt.plot(";
+    fmt::print("plt.plot(");
     for(auto& tmetoda : timpi)
     {
-        std::cout << size_range(tmetoda.size()) << ',' << timepoints_array(tmetoda) << ','
-                  << *current_marker << ',';
+        fmt::print("{},{},{},", size_range(tmetoda.size()), timepoints_array(tmetoda),
+                   *current_marker);
         ++current_marker;
     }
-    std::cout << ")\n";
+    fmt::print(")\n");
 }
 
 u64 string_limit(const double n_elements)
