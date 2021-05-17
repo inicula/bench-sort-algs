@@ -397,9 +397,8 @@ u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
     return elapsed_total / iterations;
 }
 
-template<typename T, typename GeneratorFunction>
-void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const std::string& inputtype, const int plotpos, 
-                            GeneratorFunction pred, auto&&... generator_args)
+template<typename T>
+void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const int plotpos, const auto& gmethod)
 {
     const auto& method_list = sort_funcs.fptrs;
     const auto& method_names = sort_funcs.names;
@@ -418,7 +417,7 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const st
             break;
         }
         std::cerr << "Genereaza vector de marime: 2^" << currentsize++ 
-                  << " [TIP: " << inputtype << "]\n";
+                  << " [TIP: " << gmethod.description << "]\n";
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -427,11 +426,11 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const st
             if constexpr(std::is_same_v<T, std::string>)
             {
                 const auto strsize = string_limit(i);
-                return pred(strsize, 1ull, strsize, gen, generator_args...);
+                return gmethod.ptr(strsize, 1ull, strsize, gen);
             }
             else
             {
-                return pred(i, static_cast<T>(0), i, gen, generator_args...);
+                return gmethod.ptr(i, static_cast<T>(0), i, gen);
             }
         }();
 
@@ -468,7 +467,7 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const st
 
     subplot_pos(plotpos);
     std::cout << predefined<T>;
-    subplot_title(inputtype);
+    subplot_title(gmethod.description);
     plot_command(time_list);
     legends(method_names);
 }
@@ -516,6 +515,7 @@ int main(int argc, const char* argv[])
         return 1;
     }
 
+    unsigned tmp = 0;
     const std::string_view arg = argv[1];
     if(arg == "unsigned")
     {
@@ -528,42 +528,13 @@ int main(int argc, const char* argv[])
             return 1;
         }
 
+        std::cout << pyheader << '\n';
         std::cout << suptitle<T0> << '\n';
 
-        benchmark_sort_methods<T0>(size,
-                                   sort_methods,
-                                   "random",
-                                   1,
-                                   random<T0>);
-        benchmark_sort_methods<T0>(size,
-                                   sort_methods,
-                                   "almost sorted",
-                                   2,
-                                   almost_sorted<T0>,
-                                   std::less<T0>{});
-        benchmark_sort_methods<T0>(size,
-                                   sort_methods,
-                                   "almost sorted (decreasing)",
-                                   3,
-                                   almost_sorted<T0, std::greater<T0>>,
-                                   std::greater<T0>{});
-        benchmark_sort_methods<T0>(size,
-                                   sort_methods,
-                                   "sorted",
-                                   4,
-                                   sorted<T0>,
-                                   std::less<T0>{});
-        benchmark_sort_methods<T0>(size,
-                                   sort_methods,
-                                   "sorted (decreasing)",
-                                   5,
-                                   sorted<T0, std::greater<T0>>,
-                                   std::greater<T0>{});
-        benchmark_sort_methods<T0>(size,
-                                   sort_methods,
-                                   "filled with one element",
-                                   6,
-                                   one_element<T0>);
+        for(const auto& gmethod : GeneratorMethods<T0>{})
+        {
+            benchmark_sort_methods<T0>(size, sort_methods, ++tmp, gmethod);
+        }
     }
     else if(arg == "string")
     {
@@ -576,42 +547,13 @@ int main(int argc, const char* argv[])
             return 1;
         }
 
+        std::cout << pyheader << '\n';
         std::cout << suptitle<T1> << '\n';
 
-        benchmark_sort_methods<T1>(size,
-                                   sort_methods,
-                                   "random",
-                                   1,
-                                   random<T1, u64>);
-        benchmark_sort_methods<T1>(size,
-                                   sort_methods,
-                                   "almost sorted",
-                                   2,
-                                   almost_sorted<T1, std::less<T1>, u64>,
-                                   std::less<T1>{});
-        benchmark_sort_methods<T1>(size,
-                                   sort_methods,
-                                   "almost sorted (decreasing)",
-                                   3,
-                                   almost_sorted<T1, std::greater<T1>, u64>,
-                                   std::greater<T1>{});
-        benchmark_sort_methods<T1>(size,
-                                   sort_methods,
-                                   "sorted",
-                                   4,
-                                   sorted<T1, std::less<T1>, u64>,
-                                   std::less<T1>{});
-        benchmark_sort_methods<T1>(size,
-                                   sort_methods,
-                                   "sorted (decreasing)",
-                                   5,
-                                   sorted<T1, std::greater<T1>, u64>,
-                                   std::greater<T1>{});
-        benchmark_sort_methods<T1>(size,
-                                   sort_methods,
-                                   "filled with one element",
-                                   6,
-                                   one_element<T1, u64>);
+        for(const auto& gmethod : GeneratorMethods<T1, u64>{})
+        {
+            benchmark_sort_methods<T1>(size, sort_methods, ++tmp, gmethod);
+        }
     }
     else if(arg == "double")
     {
@@ -624,42 +566,13 @@ int main(int argc, const char* argv[])
             return 1;
         }
 
+        std::cout << pyheader << '\n';
         std::cout << suptitle<T2> << '\n';
 
-        benchmark_sort_methods<T2>(size,
-                                   sort_methods,
-                                   "random",
-                                   1,
-                                   random<T2>);
-        benchmark_sort_methods<T2>(size,
-                                   sort_methods,
-                                   "almost sorted",
-                                   2,
-                                   almost_sorted<T2>,
-                                   std::less<T2>{});
-        benchmark_sort_methods<T2>(size,
-                                   sort_methods,
-                                   "almost sorted (decreasing)",
-                                   3,
-                                   almost_sorted<T2, std::greater<T2>>,
-                                   std::greater<T2>{});
-        benchmark_sort_methods<T2>(size,
-                                   sort_methods,
-                                   "sorted",
-                                   4,
-                                   sorted<T2>,
-                                   std::less<T2>{});
-        benchmark_sort_methods<T2>(size,
-                                   sort_methods,
-                                   "sorted (decreasing)",
-                                   5,
-                                   sorted<T2, std::greater<T2>>,
-                                   std::greater<T2>{});
-        benchmark_sort_methods<T2>(size,
-                                   sort_methods,
-                                   "filled with one element",
-                                   6,
-                                   one_element<T2>);
+        for(const auto& gmethod : GeneratorMethods<T2>{})
+        {
+            benchmark_sort_methods<T2>(size, sort_methods, ++tmp, gmethod);
+        }
     }
     else
     {
@@ -668,6 +581,7 @@ int main(int argc, const char* argv[])
         return 1;
     }
 
+    std::cout << "plt.show()\n";
     return 0;
 }
 

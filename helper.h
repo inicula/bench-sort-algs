@@ -70,31 +70,29 @@ std::vector<T> random(std::size_t n, const U min, const U max, Gen& gen)
 }
 
 template<typename T, typename Comp = std::less<T>, typename U = T, typename Gen = std::mt19937>
-std::vector<T> almost_sorted(const std::size_t n, const U min, const U max, Gen& g,
-                             Comp c = Comp{})
+std::vector<T> almost_sorted(const std::size_t n, const U min, const U max, Gen& g)
 {
     std::vector<T> vec = random<T>(n, min, max, g);
     auto endpoint = vec.end() - std::max(1ull, (n * 5ull) / 100ull);
-    std::sort(vec.begin(), endpoint, c);
+    std::sort(vec.begin(), endpoint, Comp{});
     return vec;
 }
 
 template<typename T, typename Comp = std::less<T>, typename U = T, typename Gen = std::mt19937>
-std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g,
-                      const Comp& c = Comp())
+std::vector<T> sorted(const std::size_t n, const U min, const U max, Gen& g)
 {
     if constexpr(std::is_unsigned_v<T>)
     {
         std::vector<T> vec;
         vec.resize(n);
         std::iota(vec.begin(), vec.end(), T(0));
-        std::sort(vec.begin(), vec.end(), c);
+        std::sort(vec.begin(), vec.end(), Comp{});
         return vec;
     }
     else
     {
         std::vector<T> vec = random<T>(n, min, max, g);
-        std::sort(vec.begin(), vec.end(), c);
+        std::sort(vec.begin(), vec.end(), Comp{});
         return vec;
     }
 }
@@ -136,6 +134,11 @@ constexpr u64 powu64(u64 x, u64 y)
     }
     return res;
 }
+
+constexpr const char* pyheader = "from matplotlib import pyplot as plt\n"
+                                 "xloc = [2**x for x in range (1,30)]\n"
+                                 "yloc = [10**x for x in range (1,12)]\n"
+                                 "plt.figure()\n";
 
 template<typename T>
 constexpr const char* predefined = "plt.xscale('log', base=2)\n"
@@ -243,3 +246,33 @@ int max_bit_pos(const T value)
     }
     return -1;
 }
+
+template<typename fptr_t>
+struct GMethod
+{
+    const char* description;
+    fptr_t ptr = nullptr;
+};
+
+template<typename T, typename... Other>
+struct GeneratorMethods
+{
+    constexpr auto begin() const
+    {
+        return std::begin(methods);
+    }
+
+    constexpr auto end() const
+    {
+        return std::end(methods);
+    }
+
+    static constexpr GMethod<decltype(&random<T, Other...>)> methods[] = {
+        {"random", random<T, Other...>},
+        {"almost_sorted", almost_sorted<T, std::less<T>, Other...>},
+        {"almost_sorted (decreasing)", almost_sorted<T, std::greater<T>, Other...>},
+        {"sorted", sorted<T, std::less<T>, Other...>},
+        {"sorted (decreasing)", sorted<T, std::greater<T>, Other...>},
+        {"filled with one element", one_element<T, Other...>}
+    };
+};
