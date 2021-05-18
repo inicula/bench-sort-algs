@@ -438,18 +438,19 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const in
             {
                 continue;
             }
-            fmt::print(stderr, "Sorteaza prin metoda: {} ...\n", method_names[m_idx]);
+            fmt::print(stderr, "Sorteaza prin metoda: {} ... ", method_names[m_idx]);
 
             const u64 elapsed = calculate_elapsed(to_sort, method_list[m_idx]);
 
             if(elapsed != U64MAX)
             {
+                fmt::print(stderr, "DONE!\n");
                 time_list[m_idx].push_back(elapsed);
             }
             else
             {
                 fmt::print(stderr,
-                           "Algoritmul nu a putut sorta input-ul din motivul urmator: {}\n",
+                           "\nAlgoritmul nu a putut sorta input-ul din motivul urmator: {}\n",
                            why);
 
                 reached_limit[m_idx] = true;
