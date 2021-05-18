@@ -481,38 +481,38 @@ int main(int argc, const char* argv[])
 
     if(argc == 1)
     {
-        fmt::print("Algoritmi pentru valori unsigned\n");
+        fmt::print(stderr, "Algoritmi pentru valori unsigned\n");
         int k = 1;
         for(auto mname : SortMethods<std::vector<unsigned>>::namelist)
         {
-            fmt::print("{}. {}\n", k, mname);
+            fmt::print(stderr, "{}. {}\n", k, mname);
             ++k;
         }
 
-        fmt::print("Algoritmi generici\n");
+        fmt::print(stderr, "Algoritmi generici\n");
         k = 1;
         for(auto mname : SortMethods<std::vector<std::string>>::namelist)
         {
-            fmt::print("{}. {}\n", k, mname);
+            fmt::print(stderr, "{}. {}\n", k, mname);
             ++k;
         }
     }
 
     if(argc < 3)
     {
-        fmt::print("{}\n", usage);
+        fmt::print(stderr, "{}\n", usage);
         return 1;
     }
 
     const u64 size = std::stoull(argv[2]);
     if(size < 1)
     {
-        fmt::print("Marimea vectorului e prea mica\n");
+        fmt::print(stderr, "Marimea vectorului e prea mica\n");
         return 1;
     }
     else if(size > 28)
     {
-        fmt::print("Marimea vectorului e prea mare\n");
+        fmt::print(stderr, "Marimea vectorului e prea mare\n");
         return 1;
     }
 
