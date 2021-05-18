@@ -220,8 +220,7 @@ void quick_sort_helper(It begin, It end, Gen& gen, std::size_t& rcall)
 template<typename It>
 void quick_sort(It begin, It end)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    static std::mt19937 gen(std::random_device{}());
     std::size_t rcall = 1;
     quick_sort_helper(begin, end, gen, rcall);
 }
@@ -364,12 +363,13 @@ void legends(const auto& namelist)
 }
 
 template<typename Vec, typename Method>
-u64 calculate_elapsed(const Vec& in_vec, Vec& out_vec, Method method)
+u64 calculate_elapsed(const Vec& in_vec, Method method)
 {
     u64 elapsed_total = 0;
     u64 iterations = 0;
     bool needs_check = true;
 
+    Vec out_vec;
     while(elapsed_total < powu64(10, 7))
     {
         out_vec = in_vec;
@@ -416,10 +416,11 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const in
         fmt::print(stderr, "Genereaza vector de marime: 2^{} [TIP: {}]\n", currentsize++,
                    gmethod.description);
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
         const std::vector<T> to_sort = [&]()
         {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+
             if constexpr(std::is_same_v<T, std::string>)
             {
                 const auto strsize = string_limit(i);
@@ -439,8 +440,7 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const in
             }
             fmt::print(stderr, "Sorteaza prin metoda: {} ...\n", method_names[m_idx]);
 
-            std::vector<T> vec;
-            const u64 elapsed = calculate_elapsed(to_sort, vec, method_list[m_idx]);
+            const u64 elapsed = calculate_elapsed(to_sort, method_list[m_idx]);
 
             if(elapsed != U64MAX)
             {
@@ -450,7 +450,7 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const in
             {
                 fmt::print(stderr,
                            "Algoritmul nu a putut sorta input-ul din motivul urmator: {}\n",
-                           method_names[m_idx]);
+                           why);
 
                 reached_limit[m_idx] = true;
                 errflag = false;
