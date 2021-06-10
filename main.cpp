@@ -553,4 +553,3 @@ int main(int argc, const char* argv[])
     fmt::print("plt.show()\n");
     return 0;
 }
-
