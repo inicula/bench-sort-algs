@@ -473,12 +473,27 @@ void benchmark_sort_methods(const u64 max_size, const auto& sort_funcs, const in
     legends(method_names);
 }
 
+template<typename T, typename... GenTypes>
+void benchmark_type(const int argc, const char* argv[], const u64 size)
+{
+    auto sort_methods = get_sort_methods<T>(argc, argv);
+    if(sort_methods.empty())
+    {
+        fmt::print(stderr, "Vectorul de metode este gol\n{}\n{}\n", usage, usage_avail);
+        std::exit(EXIT_FAILURE);
+    }
+
+    fmt::print("{}{}", pyheader, suptitle<T>);
+
+    unsigned tmp = 0;
+    for(const auto& gmethod : GeneratorMethods<T, GenTypes...>{})
+    {
+        benchmark_sort_methods<T>(size, sort_methods, ++tmp, gmethod);
+    }
+}
+
 int main(int argc, const char* argv[])
 {
-    using T0 = unsigned;
-    using T1 = std::string;
-    using T2 = double;
-
     if(argc == 1)
     {
         fmt::print(stderr, "Algoritmi pentru valori unsigned\n");
@@ -516,55 +531,18 @@ int main(int argc, const char* argv[])
         return 1;
     }
 
-    unsigned tmp = 0;
     const std::string_view arg = argv[1];
     if(arg == "unsigned")
     {
-        auto sort_methods = get_sort_methods<T0>(argc, argv);
-        if(sort_methods.empty())
-        {
-            fmt::print(stderr, "Vectorul de metode este gol\n{}\n{}\n", usage, usage_avail);
-            return 1;
-        }
-
-        fmt::print("{}{}", pyheader, suptitle<T0>);
-
-        for(const auto& gmethod : GeneratorMethods<T0>{})
-        {
-            benchmark_sort_methods<T0>(size, sort_methods, ++tmp, gmethod);
-        }
+        benchmark_type<unsigned>(argc, argv, size);
     }
-    else if(arg == "string")
+    else if(arg == "string" || arg == "std::string")
     {
-        auto sort_methods = get_sort_methods<T1>(argc, argv);
-        if(sort_methods.empty())
-        {
-            fmt::print(stderr, "Vectorul de metode este gol\n{}\n{}\n", usage, usage_avail);
-            return 1;
-        }
-
-        fmt::print("{}{}", pyheader, suptitle<T1>);
-
-        for(const auto& gmethod : GeneratorMethods<T1, u64>{})
-        {
-            benchmark_sort_methods<T1>(size, sort_methods, ++tmp, gmethod);
-        }
+        benchmark_type<std::string, u64>(argc, argv, size);
     }
     else if(arg == "double")
     {
-        auto sort_methods = get_sort_methods<T2>(argc, argv);
-        if(sort_methods.empty())
-        {
-            fmt::print(stderr, "Vectorul de metode este gol\n{}\n{}\n", usage, usage_avail);
-            return 1;
-        }
-
-        fmt::print("{}{}", pyheader, suptitle<T2>);
-
-        for(const auto& gmethod : GeneratorMethods<T2>{})
-        {
-            benchmark_sort_methods<T2>(size, sort_methods, ++tmp, gmethod);
-        }
+        benchmark_type<double>(argc, argv, size);
     }
     else
     {
