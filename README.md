@@ -1,9 +1,10 @@
-# sda-tema-1
+# bench-sort-algs
 
-Proiect SDA. Benchmark-ul unor algoritmi de sortare (pe valori unsigned, double si std::string).
+Benchmark of various sort algorithms. The program calculates the run time for each algorithm and generates a python plot (matplotlib) showing the differences between the selected algorithms.
 
-Necesita:
+Dependencies:
 
-1. compilator compatibil cu c++20
-2. libfmt7
-3. python3 si matplotlib pentru generarea graficului
++ c++-20 compatible compiler;
++ libfmt;
++ python;
++ matplotlib.
